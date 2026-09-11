@@ -1,1336 +1,1905 @@
-// ============================================================
-// SPINACH VASCULAR LAB
-// Virtual Decellularization & Vascular Simulation
-// ============================================================
+/* ============================================================
+   SPINACH VASCULAR LAB
+   Main Interface
+============================================================ */
 
-// ------------------------------------------------------------
-// Experiment State
-// ------------------------------------------------------------
+* {
+    box-sizing: border-box;
+}
 
-let experimentData = {
-    sampleId: "SP-2026-001",
+html {
+    margin: 0;
+    padding: 0;
+    background: #080c0f;
+}
 
-    decellularization: {
-        efficiency: 70,
-        preservation: 0,
-        completed: false
-    },
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 
-    flow: {
-        dyeConcentration: 50,
-        observationTime: 30,
-        distance: 0,
-        velocity: 0,
-        coverage: 0,
-        completed: false
-    },
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(74, 135, 101, 0.08),
+            transparent 45%
+        ),
+        #080c0f;
 
-    currentStep: 1
-};
+    color: #e8eeee;
 
-let flowInterval = null;
-let chart = null;
-
-
-// ------------------------------------------------------------
-// DOM Helper
-// ------------------------------------------------------------
-
-function $(id) {
-    return document.getElementById(id);
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 }
 
 
-// ------------------------------------------------------------
-// STEP Navigation
-// ------------------------------------------------------------
+/* ============================================================
+   APP
+============================================================ */
 
-function showStep(stepNumber) {
-
-    experimentData.currentStep = stepNumber;
-
-    const sections = [
-        document.querySelector("#step1"),
-        document.querySelector("#step2"),
-        document.querySelector("#step3"),
-        document.querySelector("#step4")
-    ];
-
-    sections.forEach((section, index) => {
-
-        if (!section) return;
-
-        if (index === stepNumber - 1) {
-            section.style.display = "block";
-            section.classList.add("active-step");
-        } else {
-            section.style.display = "none";
-            section.classList.remove("active-step");
-        }
-    });
-
-
-    // --------------------------------------------------------
-    // Sidebar
-    // --------------------------------------------------------
-
-    const sidebarSteps = document.querySelectorAll(".step");
-
-    sidebarSteps.forEach((step, index) => {
-
-        step.classList.remove("active");
-        step.classList.remove("completed");
-
-        if (index === stepNumber - 1) {
-            step.classList.add("active");
-        }
-
-        if (index < stepNumber - 1) {
-            step.classList.add("completed");
-        }
-    });
-
-
-    // --------------------------------------------------------
-    // Update step indicators
-    // --------------------------------------------------------
-
-    const stepLabels = document.querySelectorAll("[data-step]");
-
-    stepLabels.forEach(label => {
-
-        const number = Number(label.dataset.step);
-
-        if (number === stepNumber) {
-            label.classList.add("active");
-        } else {
-            label.classList.remove("active");
-        }
-    });
-
-
-    // --------------------------------------------------------
-    // Scroll to top
-    // --------------------------------------------------------
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+.app {
+    min-height: 100vh;
 }
 
 
-// ------------------------------------------------------------
-// STEP 01
-// Sample Preparation
-// ------------------------------------------------------------
+/* ============================================================
+   HEADER
+============================================================ */
 
-function startDecellularization() {
+.topbar {
 
-    experimentData.currentStep = 2;
+    height: 96px;
 
-    showStep(2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-    const status = document.querySelector(".status");
+    padding: 0 42px;
 
-    if (status) {
-        status.textContent = "DECELLULARIZATION READY";
-    }
+    background: rgba(12, 18, 21, 0.96);
 
-    // Automatically focus the experimental control
-    const decellPanel = document.querySelector("#step2");
-
-    if (decellPanel) {
-        decellPanel.classList.add("experiment-started");
-
-        setTimeout(() => {
-            decellPanel.classList.remove("experiment-started");
-        }, 1200);
-    }
+    border-bottom:
+        1px solid #202a2e;
 }
 
 
-// ------------------------------------------------------------
-// STEP 02
-// Decellularization Slider
-// ------------------------------------------------------------
+.brand {
 
-const decellSlider = $("decell-efficiency");
+    display: flex;
+    align-items: center;
 
-if (decellSlider) {
-
-    experimentData.decellularization.efficiency =
-        Number(decellSlider.value);
-
-    decellSlider.addEventListener("input", function () {
-
-        experimentData.decellularization.efficiency =
-            Number(this.value);
-
-        updateDecellValue();
-    });
+    gap: 14px;
 }
 
 
-function updateDecellValue() {
+.brand-mark {
 
-    const value = experimentData.decellularization.efficiency;
+    width: 42px;
+    height: 42px;
 
-    const output =
-        $("decell-efficiency-value") ||
-        $("efficiency-value") ||
-        $("decell-value");
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    if (output) {
-        output.textContent = `${value}%`;
-    }
-}
+    font-size: 25px;
 
+    border-radius: 10px;
 
-// ------------------------------------------------------------
-// Run Decellularization Simulation
-// ------------------------------------------------------------
-
-function runDecellularization() {
-
-    const efficiency =
-        experimentData.decellularization.efficiency;
-
-    const leaf =
-        document.querySelector(".leaf");
-
-    const veins =
-        document.querySelectorAll(".vein");
-
-    const progress =
-        $("decell-progress");
-
-    const result =
-        $("decell-result");
-
-    const preservationBox =
-        $("preservation");
-
-    // Prevent duplicate animation
-    if (window.decellRunning) return;
-
-    window.decellRunning = true;
-
-
-    // --------------------------------------------------------
-    // Initial UI
-    // --------------------------------------------------------
-
-    const runButton =
-        document.querySelector(
-            "#run-decellularization"
+    background:
+        linear-gradient(
+            145deg,
+            rgba(47, 117, 83, 0.35),
+            rgba(18, 32, 27, 0.9)
         );
 
-    if (runButton) {
-        runButton.disabled = true;
-        runButton.textContent = "PROCESSING...";
-    }
-
-
-    let progressValue = 0;
-
-    const interval = setInterval(() => {
-
-        progressValue += 2;
-
-        if (progress) {
-            progress.style.width = `${progressValue}%`;
-        }
-
-
-        // ----------------------------------------------------
-        // Visual decellularization
-        // ----------------------------------------------------
-
-        if (leaf) {
-
-            const fadeAmount =
-                Math.min(progressValue / 100, 1);
-
-            // Higher efficiency = stronger loss of green tissue
-            const tissueOpacity =
-                1 - fadeAmount * (efficiency / 100) * 0.85;
-
-            leaf.style.filter =
-                `saturate(${Math.max(
-                    0.15,
-                    tissueOpacity
-                )}) brightness(${1 + fadeAmount * 0.18})`;
-        }
-
-
-        // Veins become more visible
-        veins.forEach(vein => {
-
-            const visibility =
-                0.35 +
-                (progressValue / 100) *
-                0.65;
-
-            vein.style.opacity = visibility;
-        });
-
-
-        if (progressValue >= 100) {
-
-            clearInterval(interval);
-
-            finishDecellularization();
-        }
-
-    }, 40);
+    border: 1px solid #263a31;
 }
 
 
-// ------------------------------------------------------------
-// Finish Decellularization
-// ------------------------------------------------------------
+.brand h1 {
 
-function finishDecellularization() {
+    margin: 0;
 
-    const efficiency =
-        experimentData.decellularization.efficiency;
+    font-size: 21px;
+
+    font-weight: 650;
+
+    letter-spacing: -0.3px;
+}
 
 
-    // --------------------------------------------------------
-    // Educational simulation model
-    // --------------------------------------------------------
+.brand p {
 
-    const preservation =
-        Math.round(
-            58 +
-            efficiency * 0.38
+    margin: 5px 0 0;
+
+    color: #718087;
+
+    font-size: 12px;
+
+    letter-spacing: 0.2px;
+}
+
+
+.system-status {
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    color: #758188;
+
+    font-size: 11px;
+
+    letter-spacing: 1.5px;
+}
+
+
+.online-dot {
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #69d69a;
+
+    box-shadow:
+        0 0 10px rgba(105, 214, 154, 0.7);
+}
+
+
+/* ============================================================
+   BODY
+============================================================ */
+
+.app-body {
+
+    display: flex;
+
+    min-height:
+        calc(100vh - 96px);
+}
+
+
+/* ============================================================
+   SIDEBAR
+============================================================ */
+
+.sidebar {
+
+    width: 250px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 38px 22px 24px;
+
+    background: #0c1215;
+
+    border-right:
+        1px solid #202a2e;
+}
+
+
+.sidebar-title {
+
+    margin:
+        0 14px 18px;
+
+    color: #68767d;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+    font-weight: 600;
+}
+
+
+.steps {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+.step {
+
+    width: 100%;
+
+    min-height: 50px;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #6f7b81;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 0 15px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.step:hover {
+
+    background: #121b1e;
+
+    color: #b8c4c8;
+}
+
+
+.step.active {
+
+    color: #dce8e3;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(67, 120, 91, 0.18),
+            rgba(40, 75, 59, 0.14)
         );
 
-
-    experimentData.decellularization.preservation =
-        Math.min(99, preservation);
-
-    experimentData.decellularization.completed = true;
+    box-shadow:
+        inset 2px 0 0 #69c991;
+}
 
 
-    // --------------------------------------------------------
-    // Update result
-    // --------------------------------------------------------
+.step.completed {
 
-    const preservationBox =
-        $("preservation");
+    color: #83b69a;
+}
 
-    if (preservationBox) {
 
-        preservationBox.textContent =
-            `${experimentData.decellularization.preservation}%`;
+.step-number {
+
+    width: 19px;
+
+    color: #607077;
+
+    font-size: 12px;
+}
+
+
+.step.active .step-number {
+
+    color: #69c991;
+}
+
+
+.sidebar-bottom {
+
+    margin-top: auto;
+
+    padding-top: 30px;
+}
+
+
+.sample-id-label {
+
+    color: #68767d;
+
+    font-size: 10px;
+
+    letter-spacing: 1.7px;
+}
+
+
+.sample-id {
+
+    margin-top: 9px;
+
+    color: #cbd5d8;
+
+    font-size: 14px;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+}
+
+
+.reset-button {
+
+    width: 100%;
+
+    margin-top: 25px;
+
+    height: 38px;
+
+    border-radius: 6px;
+
+    border: 1px solid #263239;
+
+    background: transparent;
+
+    color: #68767d;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.reset-button:hover {
+
+    color: #b8c2c5;
+
+    border-color: #435158;
+
+    background: #12191d;
+}
+
+
+/* ============================================================
+   MAIN
+============================================================ */
+
+.main {
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding:
+        54px
+        clamp(28px, 5vw, 82px)
+        70px;
+}
+
+
+.step-section {
+
+    display: none;
+
+    max-width: 1180px;
+
+    margin: 0 auto;
+}
+
+
+.step-section.active-section {
+
+    display: block;
+
+    animation:
+        sectionAppear 0.35s ease;
+}
+
+
+@keyframes sectionAppear {
+
+    from {
+        opacity: 0;
+        transform: translateY(7px);
     }
 
-
-    const result =
-        $("decell-result");
-
-    if (result) {
-
-        result.innerHTML = `
-            <strong>Decellularization complete</strong>
-            <br>
-            Cellular tissue removal:
-            ${efficiency}%
-            <br>
-            Estimated vascular structure preservation:
-            ${experimentData.decellularization.preservation}%
-        `;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
+}
 
 
-    // --------------------------------------------------------
-    // Button
-    // --------------------------------------------------------
+/* ============================================================
+   HEADINGS
+============================================================ */
 
-    const runButton =
-        document.querySelector(
-            "#run-decellularization"
+.section-heading {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 30px;
+
+    margin-bottom: 42px;
+}
+
+
+.eyebrow {
+
+    color: #62c88f;
+
+    font-size: 11px;
+
+    letter-spacing: 3px;
+
+    font-weight: 650;
+
+    margin-bottom: 10px;
+}
+
+
+.section-heading h2 {
+
+    margin: 0;
+
+    font-size: clamp(30px, 3vw, 43px);
+
+    line-height: 1.08;
+
+    letter-spacing: -1.4px;
+
+    font-weight: 650;
+
+    color: #edf2f2;
+}
+
+
+.section-heading p {
+
+    max-width: 650px;
+
+    margin: 12px 0 0;
+
+    color: #738087;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+}
+
+
+.ready-badge,
+.process-badge,
+.complete-badge {
+
+    padding: 9px 14px;
+
+    border-radius: 7px;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+
+    white-space: nowrap;
+}
+
+
+.ready-badge {
+
+    color: #68ce94;
+
+    border: 1px solid #294335;
+}
+
+
+.process-badge {
+
+    color: #9ba8ad;
+
+    border: 1px solid #293338;
+}
+
+
+.complete-badge {
+
+    color: #69d39a;
+
+    border: 1px solid #31533f;
+
+    background: rgba(59, 117, 83, 0.08);
+}
+
+
+/* ============================================================
+   GRID
+============================================================ */
+
+.sample-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.6fr)
+        minmax(310px, 0.8fr);
+
+    gap: 28px;
+}
+
+
+/* ============================================================
+   PANELS
+============================================================ */
+
+.panel {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18, 26, 29, 0.98),
+            rgba(13, 19, 22, 0.98)
         );
 
-    if (runButton) {
+    border:
+        1px solid #253137;
 
-        runButton.disabled = false;
-        runButton.textContent = "DECELLULARIZATION COMPLETE";
-    }
+    border-radius: 12px;
 
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.15);
 
-    window.decellRunning = false;
-
-
-    // --------------------------------------------------------
-    // Move to next step
-    // --------------------------------------------------------
-
-    setTimeout(() => {
-
-        showStep(3);
-
-        const status =
-            document.querySelector(".status");
-
-        if (status) {
-            status.textContent =
-                "VASCULAR FLOW READY";
-        }
-
-    }, 1200);
+    overflow: hidden;
 }
 
 
-// ------------------------------------------------------------
-// STEP 03
-// Dye Concentration
-// ------------------------------------------------------------
+/* ============================================================
+   PANEL HEADER
+============================================================ */
 
-const dyeSlider =
-    $("dye-concentration");
+.panel-top {
 
-if (dyeSlider) {
+    height: 49px;
 
-    experimentData.flow.dyeConcentration =
-        Number(dyeSlider.value);
+    padding: 0 20px;
 
-    dyeSlider.addEventListener("input", function () {
+    display: flex;
 
-        experimentData.flow.dyeConcentration =
-            Number(this.value);
+    align-items: center;
 
-        const output =
-            $("dye-value") ||
-            $("dye-concentration-value");
+    justify-content: space-between;
 
-        if (output) {
-            output.textContent = `${this.value}%`;
-        }
-    });
+    border-bottom:
+        1px solid #202a2e;
+
+    color: #66757b;
+
+    font-size: 10px;
+
+    letter-spacing: 1.7px;
 }
 
 
-// ------------------------------------------------------------
-// Observation Time
-// ------------------------------------------------------------
+/* ============================================================
+   SAMPLE VIEW
+============================================================ */
 
-const timeSlider =
-    $("observation-time");
+.sample-stage {
 
-if (timeSlider) {
+    position: relative;
 
-    experimentData.flow.observationTime =
-        Number(timeSlider.value);
+    height: 570px;
 
-    timeSlider.addEventListener("input", function () {
+    min-height: 450px;
 
-        experimentData.flow.observationTime =
-            Number(this.value);
+    overflow: hidden;
 
-        const output =
-            $("time-value") ||
-            $("observation-time-value");
+    display: flex;
 
-        if (output) {
-            output.textContent = `${this.value}s`;
-        }
-    });
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+
+        radial-gradient(
+            ellipse at center,
+            rgba(45, 76, 58, 0.16),
+            transparent 58%
+        ),
+
+        #0a1013;
 }
 
 
-// ------------------------------------------------------------
-// Start Vascular Flow
-// ------------------------------------------------------------
+/* subtle grid */
 
-function startFlow() {
+.sample-stage::before {
 
-    if (!experimentData.decellularization.completed) {
+    content: "";
 
-        alert(
-            "Please complete decellularization first."
+    position: absolute;
+
+    inset: 0;
+
+    opacity: 0.16;
+
+    background-image:
+        linear-gradient(
+            rgba(120, 150, 140, 0.04) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(120, 150, 140, 0.04) 1px,
+            transparent 1px
         );
 
-        return;
-    }
+    background-size: 45px 45px;
+
+    pointer-events: none;
+}
 
 
-    // Prevent duplicate flow
-    if (flowInterval) {
-        clearInterval(flowInterval);
-        flowInterval = null;
-    }
+/* ============================================================
+   SPINACH LEAF
+============================================================ */
 
+.leaf {
 
-    const button =
-        document.querySelector(
-            "#inject-dye"
+    position: relative;
+
+    width: min(73%, 520px);
+
+    aspect-ratio: 1.34 / 1;
+
+    transform:
+        rotate(-18deg);
+
+    border-radius:
+        70% 32% 70% 34% /
+        55% 40% 65% 45%;
+
+    background:
+
+        radial-gradient(
+            ellipse at 45% 38%,
+            #61966b 0%,
+            #356848 34%,
+            #183b2b 68%,
+            #10291f 100%
         );
 
+    box-shadow:
 
-    if (button) {
+        inset 18px 15px 45px rgba(139, 194, 137, 0.18),
 
-        button.disabled = true;
-        button.textContent = "DYE INJECTION...";
-    }
+        inset -25px -20px 50px rgba(0, 0, 0, 0.38),
 
+        0 35px 70px rgba(0, 0, 0, 0.35);
 
-    const leaf =
-        document.querySelector(".leaf");
-
-
-    // --------------------------------------------------------
-    // Activate vascular network
-    // --------------------------------------------------------
-
-    const veins =
-        document.querySelectorAll(".vein");
-
-    veins.forEach(vein => {
-
-        vein.classList.add("flow-active");
-
-        vein.style.transition =
-            "all 0.8s ease";
-    });
+    transition:
+        filter 0.4s ease,
+        opacity 0.4s ease;
+}
 
 
-    if (leaf) {
-        leaf.classList.add("flow-running");
-    }
+/* leaf highlight */
 
+.leaf::before {
 
-    // --------------------------------------------------------
-    // Create moving dye particles
-    // --------------------------------------------------------
+    content: "";
 
-    createFlowParticles();
+    position: absolute;
 
+    inset: 13% 16%;
 
-    // --------------------------------------------------------
-    // Simulation values
-    // --------------------------------------------------------
+    border-radius: inherit;
 
-    const concentration =
-        experimentData.flow.dyeConcentration;
-
-    const observationTime =
-        experimentData.flow.observationTime;
-
-
-    // Distance model
-    const distance =
-        4.5 +
-        concentration * 0.11 +
-        observationTime * 0.32;
-
-
-    // Velocity
-    const velocity =
-        distance /
-        Math.max(observationTime, 1);
-
-
-    // Network coverage
-    const coverage =
-        18 +
-        concentration * 0.43 +
-        observationTime * 0.72;
-
-
-    experimentData.flow.distance =
-        Math.round(distance * 10) / 10;
-
-    experimentData.flow.velocity =
-        Math.round(velocity * 100) / 100;
-
-    experimentData.flow.coverage =
-        Math.min(
-            99,
-            Math.round(coverage)
+    background:
+        radial-gradient(
+            ellipse at 40% 35%,
+            rgba(165, 215, 157, 0.2),
+            transparent 50%
         );
 
-
-    // --------------------------------------------------------
-    // Animate experimental progress
-    // --------------------------------------------------------
-
-    let progress = 0;
-
-    flowInterval = setInterval(() => {
-
-        progress += 2;
+    pointer-events: none;
+}
 
 
-        updateFlowTelemetry(
-            progress
+/* ============================================================
+   VEINS
+============================================================ */
+
+.main-vein {
+
+    position: absolute;
+
+    left: 9%;
+    top: 48%;
+
+    width: 82%;
+
+    height: 5px;
+
+    border-radius: 100px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(214, 235, 191, 0.9),
+            rgba(164, 201, 156, 0.72),
+            rgba(120, 164, 126, 0.25)
         );
 
+    box-shadow:
+        0 0 9px rgba(190, 224, 175, 0.2);
 
-        if (progress >= 100) {
-
-            clearInterval(flowInterval);
-
-            flowInterval = null;
-
-            finishFlow();
-        }
-
-    }, 50);
+    z-index: 3;
 }
 
 
-// ------------------------------------------------------------
-// Flow Telemetry
-// ------------------------------------------------------------
+.branch {
 
-function updateFlowTelemetry(progress) {
+    position: absolute;
 
-    const distance =
-        experimentData.flow.distance;
+    width: 2px;
 
-    const velocity =
-        experimentData.flow.velocity;
+    height: 31%;
 
-    const coverage =
-        experimentData.flow.coverage;
+    left: 40%;
 
+    top: 18%;
 
-    const distanceElement =
-        $("flow-distance");
+    transform-origin: bottom center;
 
-    const velocityElement =
-        $("flow-velocity");
+    border-radius: 20px;
 
-    const coverageElement =
-        $("flow-coverage");
-
-
-    const currentDistance =
-        distance * (progress / 100);
-
-    const currentCoverage =
-        coverage * (progress / 100);
-
-
-    if (distanceElement) {
-
-        distanceElement.textContent =
-            `${currentDistance.toFixed(1)} mm`;
-    }
-
-
-    if (velocityElement) {
-
-        velocityElement.textContent =
-            `${velocity.toFixed(2)} mm/s`;
-    }
-
-
-    if (coverageElement) {
-
-        coverageElement.textContent =
-            `${Math.round(currentCoverage)}%`;
-    }
-}
-
-
-// ------------------------------------------------------------
-// Create Dye Particles
-// ------------------------------------------------------------
-
-function createFlowParticles() {
-
-    const leaf =
-        document.querySelector(".leaf");
-
-    if (!leaf) return;
-
-
-    // Remove previous particles
-    document
-        .querySelectorAll(".flow-particle")
-        .forEach(particle => particle.remove());
-
-
-    const positions = [
-
-        { left: "28%", top: "51%" },
-        { left: "37%", top: "48%" },
-        { left: "46%", top: "45%" },
-        { left: "55%", top: "42%" },
-        { left: "64%", top: "39%" },
-        { left: "73%", top: "36%" }
-
-    ];
-
-
-    positions.forEach((position, index) => {
-
-        const particle =
-            document.createElement("span");
-
-        particle.className =
-            "flow-particle";
-
-
-        particle.style.left =
-            position.left;
-
-        particle.style.top =
-            position.top;
-
-
-        particle.style.animationDelay =
-            `${index * 0.45}s`;
-
-
-        leaf.appendChild(particle);
-    });
-}
-
-
-// ------------------------------------------------------------
-// Finish Vascular Flow
-// ------------------------------------------------------------
-
-function finishFlow() {
-
-    experimentData.flow.completed = true;
-
-
-    const button =
-        document.querySelector(
-            "#inject-dye"
+    background:
+        linear-gradient(
+            to top,
+            rgba(204, 229, 183, 0.75),
+            rgba(135, 176, 134, 0.15)
         );
 
-
-    if (button) {
-
-        button.disabled = false;
-
-        button.textContent =
-            "FLOW SIMULATION COMPLETE";
-    }
-
-
-    // Update final telemetry
-
-    updateFlowTelemetry(100);
-
-
-    // --------------------------------------------------------
-    // Move to Analysis
-    // --------------------------------------------------------
-
-    setTimeout(() => {
-
-        showStep(4);
-
-        updateAnalysis();
-
-        const status =
-            document.querySelector(".status");
-
-        if (status) {
-
-            status.textContent =
-                "ANALYSIS COMPLETE";
-        }
-
-    }, 1400);
+    z-index: 2;
 }
 
 
-// ------------------------------------------------------------
-// STEP 04
-// Analysis
-// ------------------------------------------------------------
+.branch-a {
+    left: 27%;
+    transform: rotate(29deg);
+}
 
-function updateAnalysis() {
+.branch-b {
+    left: 38%;
+    height: 38%;
+    transform: rotate(43deg);
+}
 
-    const data =
-        experimentData.flow;
+.branch-c {
+    left: 49%;
+    height: 35%;
+    transform: rotate(28deg);
+}
 
+.branch-d {
+    left: 61%;
+    height: 31%;
+    transform: rotate(42deg);
+}
 
-    // --------------------------------------------------------
-    // Metrics
-    // --------------------------------------------------------
+.branch-e {
+    left: 72%;
+    height: 27%;
+    transform: rotate(35deg);
+}
 
-    const distance =
-        data.distance.toFixed(1);
+.branch-f {
+    left: 32%;
+    top: 49%;
+    height: 30%;
+    transform: rotate(-45deg);
+}
 
-    const velocity =
-        data.velocity.toFixed(2);
+.branch-g {
+    left: 50%;
+    top: 49%;
+    height: 28%;
+    transform: rotate(-34deg);
+}
 
-    const coverage =
-        data.coverage;
-
-
-    // Try multiple possible IDs
-    const distanceElement =
-        $("analysis-distance") ||
-        $("result-distance");
-
-    const velocityElement =
-        $("analysis-velocity") ||
-        $("result-velocity");
-
-    const coverageElement =
-        $("analysis-coverage") ||
-        $("result-coverage");
-
-
-    if (distanceElement) {
-        distanceElement.textContent =
-            `${distance} mm`;
-    }
-
-
-    if (velocityElement) {
-        velocityElement.textContent =
-            `${velocity} mm/s`;
-    }
-
-
-    if (coverageElement) {
-        coverageElement.textContent =
-            `${coverage}%`;
-    }
+.branch-h {
+    left: 66%;
+    top: 49%;
+    height: 25%;
+    transform: rotate(-43deg);
+}
 
 
-    // --------------------------------------------------------
-    // Scientific interpretation
-    // --------------------------------------------------------
+/* ============================================================
+   STAGE LABEL
+============================================================ */
 
-    const interpretation =
-        document.querySelector(
-            ".scientific-note"
+.stage-label {
+
+    position: absolute;
+
+    left: 20px;
+    bottom: 18px;
+
+    color: #536268;
+
+    font-size: 9px;
+
+    letter-spacing: 1.3px;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+}
+
+
+/* ============================================================
+   INFORMATION PANEL
+============================================================ */
+
+.information-panel,
+.control-panel {
+
+    padding: 31px;
+}
+
+
+.information-panel h3,
+.control-panel h3 {
+
+    margin: 0 0 30px;
+
+    font-size: 19px;
+
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   INFO LIST
+============================================================ */
+
+.info-list {
+
+    margin-bottom: 27px;
+}
+
+
+.info-row {
+
+    min-height: 55px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    border-bottom:
+        1px solid #222d31;
+
+    color: #68777d;
+
+    font-size: 13px;
+}
+
+
+.info-row strong {
+
+    color: #ccd4d6;
+
+    font-weight: 500;
+
+    text-align: right;
+}
+
+
+.info-row .positive {
+
+    color: #70c997;
+}
+
+
+/* ============================================================
+   MODE
+============================================================ */
+
+.mode-box {
+
+    margin:
+        22px 0 25px;
+}
+
+
+.mode-title {
+
+    margin-bottom: 10px;
+
+    color: #627077;
+
+    font-size: 10px;
+
+    letter-spacing: 1.5px;
+}
+
+
+.mode-options {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.mode-button {
+
+    padding: 13px 14px;
+
+    border-radius: 8px;
+
+    border: 1px solid #263237;
+
+    background: #0c1316;
+
+    color: #829096;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.mode-button:hover {
+
+    border-color: #3c5147;
+}
+
+
+.mode-button.selected {
+
+    border-color: #3b7756;
+
+    background:
+        rgba(57, 111, 79, 0.13);
+
+    color: #d4dfda;
+}
+
+
+.mode-button strong {
+
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 12px;
+}
+
+
+.mode-button span {
+
+    font-size: 10px;
+
+    color: #627077;
+}
+
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+
+.primary-button {
+
+    width: 100%;
+
+    height: 52px;
+
+    border: 1px solid #5bc48a;
+
+    border-radius: 8px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #397455,
+            #2d6147
         );
 
+    color: #eaf4ee;
 
-    if (interpretation) {
+    font-size: 13px;
 
-        interpretation.innerHTML = `
-            <strong>Scientific Interpretation</strong>
-            <p>
-                The simulated decellularization process removes
-                cellular tissue while preserving a substantial
-                portion of the leaf's vascular structure.
-            </p>
+    font-weight: 600;
 
-            <p>
-                During simulated perfusion, the dye follows the
-                preserved vein network. Greater network coverage
-                indicates that the simulated fluid reached a larger
-                portion of the vascular structure.
-            </p>
+    cursor: pointer;
 
-            <p>
-                <strong>Important:</strong>
-                These values are model-generated educational
-                simulation results, not measurements from a real
-                laboratory experiment.
-            </p>
-
-            <p>
-                Spinach leaf veins are not equivalent to living
-                human blood vessels. This simulation focuses on
-                structural branching and fluid-transport concepts.
-            </p>
-        `;
-    }
-
-
-    createChart();
+    transition:
+        transform 0.15s,
+        box-shadow 0.2s,
+        background 0.2s;
 }
 
 
-// ------------------------------------------------------------
-// Chart
-// ------------------------------------------------------------
+.primary-button:hover {
 
-function createChart() {
-
-    const canvas =
-        document.querySelector(
-            "#flowChart"
-        ) ||
-        document.querySelector(
-            "#analysisChart"
+    background:
+        linear-gradient(
+            180deg,
+            #438360,
+            #326e50
         );
 
-
-    if (!canvas) return;
-
-
-    // Destroy old chart
-    if (chart) {
-
-        chart.destroy();
-
-        chart = null;
-    }
-
-
-    const ctx =
-        canvas.getContext("2d");
-
-
-    const totalTime =
-        experimentData.flow.observationTime;
-
-
-    const finalCoverage =
-        experimentData.flow.coverage;
-
-
-    const labels = [];
-    const values = [];
-
-
-    const points = 7;
-
-
-    for (let i = 0; i < points; i++) {
-
-        const time =
-            Math.round(
-                totalTime *
-                (i / (points - 1))
-            );
-
-
-        const coverage =
-            Math.round(
-                finalCoverage *
-                (i / (points - 1))
-            );
-
-
-        labels.push(`${time}s`);
-        values.push(coverage);
-    }
-
-
-    chart = new Chart(ctx, {
-
-        type: "line",
-
-        data: {
-
-            labels: labels,
-
-            datasets: [
-
-                {
-                    label:
-                        "Simulated dye network coverage (%)",
-
-                    data: values,
-
-                    tension: 0.35,
-
-                    fill: true,
-
-                    pointRadius: 4,
-
-                    pointHoverRadius: 6
-                }
-
-            ]
-        },
-
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            animation: {
-
-                duration: 1000
-            },
-
-
-            plugins: {
-
-                legend: {
-
-                    display: true
-                }
-            },
-
-
-            scales: {
-
-                y: {
-
-                    min: 0,
-
-                    max: 100,
-
-                    title: {
-
-                        display: true,
-
-                        text:
-                            "Network Coverage (%)"
-                    }
-                },
-
-
-                x: {
-
-                    title: {
-
-                        display: true,
-
-                        text:
-                            "Observation Time"
-                    }
-                }
-            }
-        }
-    });
+    box-shadow:
+        0 8px 24px rgba(65, 151, 101, 0.14);
 }
 
 
-// ------------------------------------------------------------
-// Reset Experiment
-// ------------------------------------------------------------
+.primary-button:active {
 
-function resetExperiment() {
-
-    // Stop animations
-    if (flowInterval) {
-
-        clearInterval(flowInterval);
-
-        flowInterval = null;
-    }
+    transform: scale(0.99);
+}
 
 
-    window.decellRunning = false;
+.primary-button:disabled {
+
+    opacity: 0.5;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+}
 
 
-    // Reset data
+.secondary-button {
 
-    experimentData = {
+    height: 48px;
 
-        sampleId: "SP-2026-001",
+    padding: 0 25px;
 
-        decellularization: {
+    border-radius: 8px;
 
-            efficiency: 70,
+    border: 1px solid #344047;
 
-            preservation: 0,
+    background: #10171a;
 
-            completed: false
-        },
+    color: #9aa7ac;
 
-        flow: {
-
-            dyeConcentration: 50,
-
-            observationTime: 30,
-
-            distance: 0,
-
-            velocity: 0,
-
-            coverage: 0,
-
-            completed: false
-        },
-
-        currentStep: 1
-    };
+    cursor: pointer;
+}
 
 
-    // Reset sliders
+/* ============================================================
+   CONTROLS
+============================================================ */
 
-    if (decellSlider) {
+.control-block {
 
-        decellSlider.value = 70;
-    }
-
-
-    if (dyeSlider) {
-
-        dyeSlider.value = 50;
-    }
+    margin-bottom: 30px;
+}
 
 
-    if (timeSlider) {
+.control-title {
 
-        timeSlider.value = 30;
-    }
+    display: flex;
 
+    justify-content: space-between;
 
-    updateDecellValue();
+    gap: 15px;
 
+    margin-bottom: 15px;
 
-    // Reset leaf
+    color: #859298;
 
-    const leaf =
-        document.querySelector(".leaf");
-
-
-    if (leaf) {
-
-        leaf.style.filter = "";
-        leaf.classList.remove("flow-running");
-    }
+    font-size: 12px;
+}
 
 
-    // Reset veins
+.control-title strong {
 
-    document
-        .querySelectorAll(".vein")
-        .forEach(vein => {
+    color: #69cb93;
 
-            vein.classList.remove(
-                "flow-active"
-            );
-
-            vein.style.opacity = "";
-        });
+    font-weight: 600;
+}
 
 
-    // Remove particles
+input[type="range"] {
 
-    document
-        .querySelectorAll(".flow-particle")
-        .forEach(particle => {
+    width: 100%;
 
-            particle.remove();
-        });
+    appearance: none;
+
+    height: 4px;
+
+    border-radius: 10px;
+
+    background: #273237;
+
+    outline: none;
+}
 
 
-    // Reset buttons
+input[type="range"]::-webkit-slider-thumb {
 
-    const decellButton =
-        document.querySelector(
-            "#run-decellularization"
+    appearance: none;
+
+    width: 17px;
+
+    height: 17px;
+
+    border-radius: 50%;
+
+    background: #69c991;
+
+    border: 3px solid #102018;
+
+    box-shadow:
+        0 0 0 1px #69c991;
+
+    cursor: pointer;
+}
+
+
+input[type="range"]::-moz-range-thumb {
+
+    width: 14px;
+
+    height: 14px;
+
+    border-radius: 50%;
+
+    background: #69c991;
+
+    border: 2px solid #102018;
+
+    cursor: pointer;
+}
+
+
+.range-labels {
+
+    margin-top: 8px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    color: #526067;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+}
+
+
+/* ============================================================
+   PROGRESS
+============================================================ */
+
+.progress-track {
+
+    height: 8px;
+
+    overflow: hidden;
+
+    border-radius: 20px;
+
+    background: #1a2428;
+}
+
+
+.progress-fill {
+
+    width: 0%;
+
+    height: 100%;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            #3c8e62,
+            #71d49d
         );
 
+    transition:
+        width 0.08s linear;
+}
 
-    if (decellButton) {
 
-        decellButton.disabled = false;
+/* ============================================================
+   RESULT
+============================================================ */
 
-        decellButton.textContent =
-            "RUN SIMULATION";
+.result-card {
+
+    margin:
+        10px 0 18px;
+
+    padding: 19px;
+
+    border-radius: 8px;
+
+    border: 1px solid #273337;
+
+    background: #0c1316;
+}
+
+
+.result-card span {
+
+    display: block;
+
+    color: #68767c;
+
+    font-size: 9px;
+
+    letter-spacing: 1.4px;
+}
+
+
+.result-card strong {
+
+    display: block;
+
+    margin-top: 7px;
+
+    color: #d5e3dc;
+
+    font-size: 26px;
+
+    font-weight: 550;
+}
+
+
+.result-message {
+
+    min-height: 75px;
+
+    margin-bottom: 22px;
+
+    padding: 14px;
+
+    border-left:
+        2px solid #355644;
+
+    background: rgba(39, 67, 51, 0.08);
+
+    color: #7e8c91;
+
+    font-size: 11px;
+
+    line-height: 1.65;
+}
+
+
+/* ============================================================
+   PROCESS OVERLAY
+============================================================ */
+
+.process-overlay {
+
+    position: absolute;
+
+    bottom: 20px;
+    right: 20px;
+
+    padding: 7px 10px;
+
+    border-radius: 5px;
+
+    color: #637177;
+
+    background: rgba(8, 13, 15, 0.7);
+
+    border: 1px solid #263136;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+}
+
+
+/* ============================================================
+   FLOW
+============================================================ */
+
+.flow-stage {
+
+    position: relative;
+}
+
+
+.flow-stage .leaf {
+
+    transition:
+        filter 0.5s ease;
+}
+
+
+.flow-legend {
+
+    position: absolute;
+
+    right: 20px;
+    bottom: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color: #657279;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+}
+
+
+.legend-dot {
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #e65e6b;
+
+    box-shadow:
+        0 0 8px rgba(230, 94, 107, 0.8);
+}
+
+
+/* ============================================================
+   DYE
+============================================================ */
+
+.dye-path {
+
+    position: absolute;
+
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #ed5e69;
+
+    box-shadow:
+        0 0 8px rgba(237, 94, 105, 0.9),
+        0 0 18px rgba(237, 94, 105, 0.35);
+
+    z-index: 10;
+
+    animation:
+        dyePulse 0.8s ease-in-out infinite;
+}
+
+
+@keyframes dyePulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
     }
 
+    50% {
+        transform: scale(1.3);
+    }
+}
 
-    const flowButton =
-        document.querySelector(
-            "#inject-dye"
+
+.vein-dye {
+
+    position: absolute;
+
+    height: 5px;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(232, 83, 96, 0.2),
+            rgba(236, 91, 103, 0.9),
+            rgba(236, 91, 103, 0.25)
         );
 
+    box-shadow:
+        0 0 8px rgba(235, 85, 99, 0.45);
 
-    if (flowButton) {
+    z-index: 4;
 
-        flowButton.disabled = false;
+    animation:
+        dyeSpread 1.2s ease forwards;
+}
 
-        flowButton.textContent =
-            "INJECT DYE";
+
+@keyframes dyeSpread {
+
+    from {
+        width: 0;
+        opacity: 0;
     }
 
-
-    // Reset analysis values
-
-    const values = [
-
-        "flow-distance",
-        "flow-velocity",
-        "flow-coverage",
-        "analysis-distance",
-        "analysis-velocity",
-        "analysis-coverage",
-        "result-distance",
-        "result-velocity",
-        "result-coverage",
-        "preservation"
-
-    ];
-
-
-    values.forEach(id => {
-
-        const element = $(id);
-
-        if (element) {
-
-            element.textContent = "--";
-        }
-    });
-
-
-    // Destroy chart
-
-    if (chart) {
-
-        chart.destroy();
-
-        chart = null;
-    }
-
-
-    // Back to STEP 01
-
-    showStep(1);
-
-
-    const status =
-        document.querySelector(".status");
-
-    if (status) {
-
-        status.textContent =
-            "SYSTEM ONLINE";
+    to {
+        opacity: 1;
     }
 }
 
 
-// ------------------------------------------------------------
-// Sidebar Step Click
-// ------------------------------------------------------------
+/* ============================================================
+   TELEMETRY
+============================================================ */
 
-document
-    .querySelectorAll(".step")
-    .forEach((step, index) => {
+.telemetry-grid {
 
-        step.addEventListener("click", () => {
+    display: grid;
 
-            const targetStep =
-                index + 1;
+    grid-template-columns:
+        repeat(3, 1fr);
 
+    gap: 9px;
 
-            // Do not allow skipping unfinished experiment
-
-            if (targetStep === 2) {
-
-                showStep(2);
-
-                return;
-            }
-
-
-            if (
-                targetStep === 3 &&
-                experimentData.decellularization.completed
-            ) {
-
-                showStep(3);
-
-                return;
-            }
-
-
-            if (
-                targetStep === 4 &&
-                experimentData.flow.completed
-            ) {
-
-                showStep(4);
-
-                return;
-            }
-
-
-            if (targetStep === 1) {
-
-                showStep(1);
-
-                return;
-            }
-
-        });
-
-    });
-
-
-// ------------------------------------------------------------
-// Button Event Binding
-// ------------------------------------------------------------
-
-const beginButton =
-    document.querySelector(
-        "#begin-decellularization"
-    );
-
-
-if (beginButton) {
-
-    beginButton.addEventListener(
-        "click",
-        startDecellularization
-    );
+    margin:
+        12px 0 24px;
 }
 
 
-const runDecellButton =
-    document.querySelector(
-        "#run-decellularization"
-    );
+.telemetry {
 
+    min-height: 82px;
 
-if (runDecellButton) {
+    padding: 14px;
 
-    runDecellButton.addEventListener(
-        "click",
-        runDecellularization
-    );
+    border:
+        1px solid #253137;
+
+    border-radius: 7px;
+
+    background: #0b1215;
 }
 
 
-const injectButton =
-    document.querySelector(
-        "#inject-dye"
-    );
+.telemetry span {
 
+    display: block;
 
-if (injectButton) {
+    color: #5d6b71;
 
-    injectButton.addEventListener(
-        "click",
-        startFlow
-    );
+    font-size: 8px;
+
+    letter-spacing: 1px;
 }
 
 
-const resetButton =
-    document.querySelector(
-        "#reset-experiment"
-    );
+.telemetry strong {
 
+    display: block;
 
-if (resetButton) {
+    margin-top: 10px;
 
-    resetButton.addEventListener(
-        "click",
-        resetExperiment
-    );
+    color: #cbd7d3;
+
+    font-size: 17px;
+
+    font-weight: 550;
 }
 
 
-// ------------------------------------------------------------
-// Initial State
-// ------------------------------------------------------------
+/* ============================================================
+   ANALYSIS METRICS
+============================================================ */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+.metrics-grid {
 
-        updateDecellValue();
+    display: grid;
 
-        showStep(1);
+    grid-template-columns:
+        repeat(4, 1fr);
 
+    gap: 15px;
+
+    margin-bottom: 22px;
+}
+
+
+.metric {
+
+    min-height: 125px;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    border: 1px solid #263238;
+
+    background:
+        linear-gradient(
+            145deg,
+            #121a1d,
+            #0d1417
+        );
+}
+
+
+.metric span {
+
+    color: #647278;
+
+    font-size: 9px;
+
+    letter-spacing: 1.2px;
+
+    line-height: 1.5;
+}
+
+
+.metric strong {
+
+    display: block;
+
+    margin-top: 16px;
+
+    color: #d9e4e0;
+
+    font-size: 25px;
+
+    font-weight: 550;
+}
+
+
+/* ============================================================
+   CHART
+============================================================ */
+
+.chart-panel {
+
+    margin-bottom: 20px;
+}
+
+
+.chart-wrapper {
+
+    height: 360px;
+
+    padding: 25px;
+}
+
+
+/* ============================================================
+   INTERPRETATION
+============================================================ */
+
+.interpretation {
+
+    padding: 25px;
+
+    margin-bottom: 20px;
+
+    color: #849197;
+
+    font-size: 12px;
+
+    line-height: 1.75;
+}
+
+
+.interpretation-title {
+
+    margin-bottom: 12px;
+
+    color: #69c991;
+
+    font-size: 10px;
+
+    letter-spacing: 1.7px;
+
+    font-weight: 650;
+}
+
+
+.interpretation strong {
+
+    color: #cfd9d7;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1000px) {
+
+    .sidebar {
+        width: 205px;
     }
-);
+
+    .main {
+        padding: 40px 30px 60px;
+    }
+
+    .sample-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sample-stage {
+        height: 470px;
+    }
+
+    .metrics-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .topbar {
+
+        height: 78px;
+
+        padding: 0 18px;
+    }
+
+    .brand-mark {
+        width: 35px;
+        height: 35px;
+        font-size: 19px;
+    }
+
+    .brand h1 {
+        font-size: 15px;
+    }
+
+    .brand p {
+        font-size: 9px;
+    }
+
+    .system-status {
+        display: none;
+    }
+
+
+    .app-body {
+        display: block;
+    }
+
+
+    .sidebar {
+
+        width: 100%;
+
+        height: auto;
+
+        padding:
+            15px
+            15px
+            12px;
+
+        border-right: 0;
+
+        border-bottom:
+            1px solid #202a2e;
+    }
+
+
+    .sidebar-title {
+        display: none;
+    }
+
+
+    .steps {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, 1fr);
+
+        gap: 5px;
+    }
+
+
+    .step {
+
+        min-height: 43px;
+
+        justify-content: center;
+
+        padding: 5px;
+
+        gap: 5px;
+
+        font-size: 10px;
+
+        flex-direction: column;
+    }
+
+
+    .step-number {
+        width: auto;
+
+        font-size: 9px;
+    }
+
+
+    .sidebar-bottom {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        padding-top: 10px;
+    }
+
+
+    .sample-id-label {
+        display: none;
+    }
+
+
+    .sample-id {
+        margin: 0;
+
+        font-size: 10px;
+    }
+
+
+    .reset-button {
+
+        width: auto;
+
+        margin: 0 0 0 auto;
+
+        height: 30px;
+
+        padding: 0 10px;
+
+        font-size: 8px;
+    }
+
+
+    .main {
+
+        padding:
+            32px
+            16px
+            50px;
+    }
+
+
+    .section-heading {
+
+        margin-bottom: 25px;
+
+        gap: 15px;
+    }
+
+
+    .section-heading h2 {
+        font-size: 28px;
+    }
+
+
+    .section-heading p {
+        font-size: 12px;
+    }
+
+
+    .ready-badge,
+    .process-badge,
+    .complete-badge {
+        padding: 7px 9px;
+
+        font-size: 8px;
+    }
+
+
+    .sample-stage {
+
+        height: 380px;
+
+        min-height: 300px;
+    }
+
+
+    .leaf {
+        width: 75%;
+    }
+
+
+    .information-panel,
+    .control-panel {
+        padding: 22px;
+    }
+
+
+    .metrics-grid {
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+
+    .metric {
+
+        min-height: 105px;
+
+        padding: 15px;
+    }
+
+
+    .metric strong {
+        font-size: 20px;
+    }
+
+
+    .telemetry-grid {
+        grid-template-columns:
+            1fr 1fr 1fr;
+    }
+
+
+    .telemetry {
+        padding: 10px;
+    }
+
+
+    .telemetry strong {
+        font-size: 13px;
+    }
+
+
+    .chart-wrapper {
+        height: 280px;
+
+        padding: 15px;
+    }
+}
+
+
+@media (max-width: 430px) {
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sample-stage {
+        height: 320px;
+    }
+
+    .section-heading h2 {
+        font-size: 25px;
+    }
+
+    .telemetry-grid {
+        gap: 5px;
+    }
+
+    .telemetry {
+        min-height: 70px;
+    }
+}
