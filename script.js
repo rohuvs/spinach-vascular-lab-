@@ -1,1613 +1,1730 @@
-/* =========================================
+/* =========================================================
+   SPINACH VASCULAR SCAFFOLD SIMULATOR
+========================================================= */
 
-   SPINACH VASCULAR LAB
 
-   Educational Simulation
+/* =========================================================
+   STATE
+========================================================= */
 
-========================================= */
+const state = {
 
-/* =========================================
+  mode: "guided",
 
-   EXPERIMENT STATE
+  currentStep: 1,
 
-========================================= */
+  unlockedStep: 1,
 
-const experiment = {
+  experimentStarted: false,
 
-    currentStep: 1,
+  decellProgress: 0,
 
-    started: false,
+  decellComplete: false,
 
-    treatmentStarted: false,
+  flowRunning: false,
 
-    washingCompleted: false,
+  flowComplete: false,
 
-    flowStarted: false,
+  dye: 60,
 
-    analysisReady: false,
+  observationTime: 10,
 
-    treatmentProgress: 0,
+  distance: 0,
 
-    cellularRemoval: 0,
+  velocity: 0,
 
-    structuralPreservation: 100,
+  coverage: 0,
 
-    tracerConcentration: 50,
+  chart: null,
 
-    observationTime: 30,
-
-    tracerDistance: 0,
-
-    tracerCoverage: 0,
-
-    modelVelocity: 0,
-
-    chart: null
+  animationFrame: null
 
 };
 
-/* =========================================
 
-   STEP NAVIGATION
 
-========================================= */
+/* =========================================================
+   DOM
+========================================================= */
 
-function showStep(step) {
+const stepPanels = {
+  1: document.getElementById("step1"),
+  2: document.getElementById("step2"),
+  3: document.getElementById("step3"),
+  4: document.getElementById("step4")
+};
 
-    const sections =
 
-        document.querySelectorAll(".experiment-step");
+const stepButtons =
+  document.querySelectorAll(".step-button");
 
-    sections.forEach(section => {
 
-        section.classList.remove("active");
+const timelineItems =
+  document.querySelectorAll(".timeline-item");
 
-    });
 
-    const target =
+const timelineLines =
+  document.querySelectorAll(".timeline-line");
 
-        document.getElementById(`step-${step}`);
 
-    if (target) {
+const topbarStage =
+  document.getElementById("topbarStage");
 
-        target.classList.add("active");
 
-    }
+/* Buttons */
 
-    const buttons =
+const beginExperiment =
+  document.getElementById("beginExperiment");
 
-        document.querySelectorAll(".step-button");
+const startDecellularization =
+  document.getElementById("startDecellularization");
 
-    buttons.forEach(button => {
+const continueToFlow =
+  document.getElementById("continueToFlow");
 
-        button.classList.remove("active");
+const startFlow =
+  document.getElementById("startFlow");
 
-        if (
+const stopFlow =
+  document.getElementById("stopFlow");
 
-            Number(button.dataset.step) === step
+const continueToAnalysis =
+  document.getElementById("continueToAnalysis");
 
-        ) {
+const resetButton =
+  document.getElementById("resetButton");
 
-            button.classList.add("active");
+const restartExperiment =
+  document.getElementById("restartExperiment");
 
-        }
 
-    });
+/* Mode */
 
-    experiment.currentStep = step;
+const guidedMode =
+  document.getElementById("guidedMode");
 
-    window.scrollTo({
+const freeMode =
+  document.getElementById("freeMode");
 
-        top: 0,
 
-        behavior: "smooth"
+/* Decellularization */
 
-    });
+const decellProgressBar =
+  document.getElementById("decellProgressBar");
 
-}
+const decellProgressText =
+  document.getElementById("decellProgressText");
 
-/* =========================================
+const cellularRemaining =
+  document.getElementById("cellularRemaining");
 
-   STEP 1
+const vascularVisibility =
+  document.getElementById("vascularVisibility");
 
-========================================= */
+const cellularBar =
+  document.getElementById("cellularBar");
 
-function beginExperiment() {
+const vascularBar =
+  document.getElementById("vascularBar");
 
-    experiment.started = true;
+const decellStatus =
+  document.getElementById("decellStatus");
 
-    showStep(2);
+const cellularLayer =
+  document.getElementById("cellularLayer");
 
-    const status =
+const vascularNetwork =
+  document.getElementById("vascularNetwork");
 
-        document.getElementById("decell-status");
 
-    status.textContent = "READY";
+/* Flow */
 
-    updateDecellularizationUI();
+const dyeRange =
+  document.getElementById("dyeRange");
 
-}
+const dyeValue =
+  document.getElementById("dyeValue");
 
-/* =========================================
+const timeRange =
+  document.getElementById("timeRange");
 
-   TREATMENT SLIDER
+const timeValue =
+  document.getElementById("timeValue");
 
-========================================= */
+const flowStatus =
+  document.getElementById("flowStatus");
 
-const treatmentSlider =
+const distanceValue =
+  document.getElementById("distanceValue");
 
-    document.getElementById("treatment-slider");
+const velocityValue =
+  document.getElementById("velocityValue");
 
-if (treatmentSlider) {
+const coverageValue =
+  document.getElementById("coverageValue");
 
-    treatmentSlider.addEventListener(
+const flowParticles =
+  document.querySelectorAll(".flow-particle");
 
-        "input",
 
-        function () {
+/* Final results */
 
-            const value =
+const finalVisibility =
+  document.getElementById("finalVisibility");
 
-                Number(this.value);
+const finalCoverage =
+  document.getElementById("finalCoverage");
 
-            experiment.treatmentProgress =
+const finalVelocity =
+  document.getElementById("finalVelocity");
 
-                value;
 
-            updateTreatmentFromSlider();
+/* =========================================================
+   STAGE TITLES
+========================================================= */
 
-        }
+const stageNames = {
 
+  1: "SAMPLE PREPARATION",
+
+  2: "DECELLULARIZATION MODEL",
+
+  3: "VASCULAR FLOW SIMULATION",
+
+  4: "ANALYSIS & CONCLUSION"
+
+};
+
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  updateFlowControls();
+
+  updateDecellVisual(0);
+
+  updateAnalysis();
+
+  setupChart();
+
+  setStep(1);
+
+});
+
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function setStep(step) {
+
+  if (step < 1 || step > 4) {
+    return;
+  }
+
+
+  if (
+    state.mode === "guided" &&
+    step > state.unlockedStep
+  ) {
+    return;
+  }
+
+
+  state.currentStep = step;
+
+
+  Object.values(stepPanels).forEach(panel => {
+    panel.classList.remove("active");
+  });
+
+
+  stepPanels[step].classList.add("active");
+
+
+  stepButtons.forEach(button => {
+
+    const buttonStep =
+      Number(button.dataset.step);
+
+    button.classList.toggle(
+      "active",
+      buttonStep === step
     );
 
+  });
+
+
+  timelineItems.forEach(item => {
+
+    const itemStep =
+      Number(item.dataset.timeline);
+
+    item.classList.toggle(
+      "active",
+      itemStep === step
+    );
+
+    item.classList.toggle(
+      "completed",
+      itemStep < state.currentStep
+    );
+
+  });
+
+
+  topbarStage.textContent =
+    stageNames[step];
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
 }
 
-/* =========================================
 
-   TREATMENT MODEL
 
-========================================= */
+/* =========================================================
+   STEP UNLOCKING
+========================================================= */
 
-function updateTreatmentFromSlider() {
+function unlockStep(step) {
+
+  if (step > state.unlockedStep) {
+    state.unlockedStep = step;
+  }
+
+
+  stepButtons.forEach(button => {
+
+    const buttonStep =
+      Number(button.dataset.step);
+
+    if (buttonStep <= state.unlockedStep) {
+
+      button.classList.remove("locked");
+
+      button.querySelector(".step-status").textContent =
+        buttonStep < state.unlockedStep
+          ? "✓"
+          : "●";
+
+    }
+
+  });
+
+}
+
+
+
+/* =========================================================
+   STEP BUTTONS
+========================================================= */
+
+stepButtons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    const step =
+      Number(button.dataset.step);
+
+    setStep(step);
+
+  });
+
+});
+
+
+
+/* =========================================================
+   BEGIN EXPERIMENT
+========================================================= */
+
+beginExperiment.addEventListener("click", () => {
+
+  state.experimentStarted = true;
+
+  unlockStep(2);
+
+  setStep(2);
+
+});
+
+
+
+/* =========================================================
+   MODE SWITCH
+========================================================= */
+
+
+/*
+   GUIDED MODE
+   ------------
+   Experiment must proceed in order.
+
+   FREE MODE
+   ---------
+   Once the experiment begins, every stage becomes accessible.
+   The user can revisit the simulation and change parameters.
+
+   This is intentionally different from the Start button.
+*/
+
+guidedMode.addEventListener("click", () => {
+
+  state.mode = "guided";
+
+  guidedMode.classList.add("active");
+  freeMode.classList.remove("active");
+
+
+  if (state.currentStep > state.unlockedStep) {
+    setStep(state.unlockedStep);
+  }
+
+});
+
+
+freeMode.addEventListener("click", () => {
+
+  state.mode = "free";
+
+  freeMode.classList.add("active");
+  guidedMode.classList.remove("active");
+
+
+  if (state.experimentStarted) {
+
+    state.unlockedStep = 4;
+
+    stepButtons.forEach(button => {
+      button.classList.remove("locked");
+    });
+
+  }
+
+});
+
+
+
+/* =========================================================
+   DECELLULARIZATION
+========================================================= */
+
+startDecellularization.addEventListener(
+  "click",
+  startDecellularizationModel
+);
+
+
+function startDecellularizationModel() {
+
+  if (state.decellComplete) {
+    return;
+  }
+
+
+  startDecellularization.disabled = true;
+
+  startDecellularization.innerHTML =
+    "<span>Running Decellularization Model...</span><b>◌</b>";
+
+
+  decellStatus.classList.add("running");
+
+  decellStatus.classList.remove("complete");
+
+  decellStatus.innerHTML =
+    "<i></i> RUNNING";
+
+
+  let startTime = null;
+
+  const duration = 8000;
+
+
+  function animate(timestamp) {
+
+    if (!startTime) {
+      startTime = timestamp;
+    }
+
+
+    const elapsed =
+      timestamp - startTime;
+
 
     const progress =
+      Math.min(elapsed / duration, 1);
 
-        experiment.treatmentProgress;
 
-    /*
+    state.decellProgress =
+      progress * 100;
 
-       This is intentionally a MODEL.
 
-       It does not claim that a particular
+    updateDecellVisual(
+      state.decellProgress
+    );
 
-       treatment percentage corresponds to
 
-       a real chemical concentration/time.
+    if (progress < 1) {
 
-    */
+      requestAnimationFrame(animate);
 
-    experiment.cellularRemoval =
+    } else {
 
-        Math.round(progress * 0.92);
-
-    /*
-
-       We assume that structural preservation
-
-       remains relatively high while treatment
-
-       progresses, but may decrease slightly
-
-       at extreme treatment levels.
-
-       This is an educational model, not
-
-       experimental data.
-
-    */
-
-    experiment.structuralPreservation =
-
-        Math.max(
-
-            82,
-
-            Math.round(
-
-                100 - Math.max(0, progress - 70) * 0.45
-
-            )
-
-        );
-
-    document.getElementById(
-
-        "treatment-progress-text"
-
-    ).textContent =
-
-        `${progress}%`;
-
-    document.getElementById(
-
-        "cell-removal-value"
-
-    ).textContent =
-
-        `${experiment.cellularRemoval}%`;
-
-    document.getElementById(
-
-        "structure-value"
-
-    ).textContent =
-
-        `${experiment.structuralPreservation}%`;
-
-    document.getElementById(
-
-        "preservation-display"
-
-    ).textContent =
-
-        `${experiment.structuralPreservation}%`;
-
-    document.getElementById(
-
-        "cell-removal-bar"
-
-    ).style.width =
-
-        `${experiment.cellularRemoval}%`;
-
-    document.getElementById(
-
-        "structure-bar"
-
-    ).style.width =
-
-        `${experiment.structuralPreservation}%`;
-
-    const leaf =
-
-        document.querySelector(".decell-leaf");
-
-    if (leaf) {
-
-        leaf.className =
-
-            "leaf decell-leaf";
-
-        if (progress > 0) {
-
-            const level =
-
-                Math.round(progress / 10) * 10;
-
-            leaf.classList.add(
-
-                `treatment-${level}`
-
-            );
-
-        }
+      finishDecellularization();
 
     }
 
-    const result =
+  }
 
-        document.getElementById(
 
-            "decell-result"
-
-        );
-
-    if (progress === 0) {
-
-        result.textContent =
-
-            "Treatment has not started.";
-
-    }
-
-    else if (progress < 30) {
-
-        result.textContent =
-
-            "Early cellular-material removal is being modeled. The leaf remains visibly green.";
-
-    }
-
-    else if (progress < 60) {
-
-        result.textContent =
-
-            "The model shows decreasing cellular pigmentation while the main vascular structure remains visible.";
-
-    }
-
-    else if (progress < 90) {
-
-        result.textContent =
-
-            "Most cellular coloration has been removed in the model. The major vein network remains visible.";
-
-    }
-
-    else {
-
-        result.textContent =
-
-            "The model predicts substantial cellular-material removal with preserved structural pathways. This visual result alone cannot prove complete decellularization.";
-
-    }
-
-    if (progress > 0) {
-
-        document.getElementById(
-
-            "decell-status"
-
-        ).textContent =
-
-            "RUNNING";
-
-    }
-
-    if (progress >= 100) {
-
-        experiment.treatmentStarted = true;
-
-        document.getElementById(
-
-            "decell-status"
-
-        ).textContent =
-
-            "COMPLETE";
-
-        document.getElementById(
-
-            "treatment-button"
-
-        ).textContent =
-
-            "TREATMENT COMPLETE";
-
-        document.getElementById(
-
-            "treatment-button"
-
-        ).disabled =
-
-            true;
-
-        document.getElementById(
-
-            "wash-button"
-
-        ).classList.remove("hidden");
-
-    }
+  requestAnimationFrame(animate);
 
 }
 
-/* =========================================
 
-   START TREATMENT
 
-========================================= */
+/* =========================================================
+   DECELL VISUAL MODEL
+========================================================= */
 
-function startTreatment() {
+function updateDecellVisual(progress) {
 
-    if (experiment.treatmentStarted) {
+  const p =
+    Math.max(
+      0,
+      Math.min(100, progress)
+    );
 
-        return;
 
-    }
+  /*
+    This is intentionally a visual model.
 
-    const button =
+    It does NOT represent a measured biochemical
+    decellularization percentage.
+  */
 
-        document.getElementById(
 
-            "treatment-button"
+  const remaining =
+    100 - (p * 0.92);
 
-        );
 
-    button.disabled = true;
+  const visibility =
+    20 + (p * 0.76);
 
-    button.textContent =
 
-        "TREATMENT IN PROGRESS";
+  cellularRemaining.textContent =
+    `${Math.round(remaining)}%`;
 
-    let progress = 0;
 
-    const interval =
+  vascularVisibility.textContent =
+    `${Math.round(visibility)}%`;
 
-        setInterval(() => {
 
-            progress += 2;
+  cellularBar.style.width =
+    `${Math.max(8, remaining)}%`;
 
-            treatmentSlider.value =
 
-                progress;
+  vascularBar.style.width =
+    `${Math.min(96, visibility)}%`;
 
-            experiment.treatmentProgress =
 
-                progress;
+  decellProgressBar.style.width =
+    `${p}%`;
 
-            updateTreatmentFromSlider();
 
-            if (progress >= 100) {
+  decellProgressText.textContent =
+    `${Math.round(p)}%`;
 
-                clearInterval(interval);
 
-                button.textContent =
+  /*
+    Main leaf model:
+    cellular material fades,
+    vascular network becomes more visible.
+  */
 
-                    "TREATMENT COMPLETE";
+  if (cellularLayer) {
 
-            }
+    const opacity =
+      1 - (p / 100) * 0.92;
 
-        }, 70);
+    cellularLayer.style.opacity =
+      opacity;
+
+  }
+
+
+  if (vascularNetwork) {
+
+    const opacity =
+      0.45 + (p / 100) * 0.55;
+
+    vascularNetwork.style.opacity =
+      opacity;
+
+  }
+
+
+  updateProcessSteps(p);
 
 }
 
-/* =========================================
 
-   WASHING
 
-========================================= */
+/* =========================================================
+   PROCESS STEP VISUAL
+========================================================= */
 
-function completeWashing() {
+function updateProcessSteps(progress) {
 
-    experiment.washingCompleted = true;
+  const steps =
+    document.querySelectorAll(
+      ".process-step"
+    );
 
-    const status =
 
-        document.getElementById(
+  let activeIndex = 0;
 
-            "decell-status"
 
-        );
+  if (progress >= 15 && progress < 65) {
+    activeIndex = 1;
+  }
 
-    status.textContent =
+  if (progress >= 65 && progress < 90) {
+    activeIndex = 2;
+  }
 
-        "WASHED";
+  if (progress >= 90) {
+    activeIndex = 3;
+  }
 
-    const result =
 
-        document.getElementById(
+  steps.forEach((step, index) => {
 
-            "decell-result"
+    step.classList.toggle(
+      "active",
+      index === activeIndex
+    );
 
-        );
+    step.classList.toggle(
+      "completed",
+      index < activeIndex
+    );
 
-    result.textContent =
+  });
 
-        "Virtual washing is complete. The model now treats the sample as a processed, rehydrated scaffold for the flow simulation.";
+}
 
-    const button =
 
-        document.getElementById(
 
-            "wash-button"
+/* =========================================================
+   FINISH DECELLULARIZATION
+========================================================= */
 
-        );
+function finishDecellularization() {
 
-    button.textContent =
+  state.decellComplete = true;
 
-        "WASH COMPLETE";
 
-    button.disabled = true;
+  state.decellProgress = 100;
+
+
+  updateDecellVisual(100);
+
+
+  decellStatus.classList.remove("running");
+
+  decellStatus.classList.add("complete");
+
+  decellStatus.innerHTML =
+    "<i></i> MODEL COMPLETE";
+
+
+  startDecellularization.disabled = true;
+
+  startDecellularization.innerHTML =
+    "<span>Decellularization Model Complete</span><b>✓</b>";
+
+
+  continueToFlow.classList.remove("hidden");
+
+
+  unlockStep(3);
+
+
+  if (state.mode === "guided") {
 
     setTimeout(() => {
 
-        showStep(3);
+      continueToFlow.focus();
 
-    }, 700);
+    }, 100);
 
-}
-
-/* =========================================
-
-   FLOW SLIDERS
-
-========================================= */
-
-const dyeSlider =
-
-    document.getElementById("dye-slider");
-
-const timeSlider =
-
-    document.getElementById("time-slider");
-
-if (dyeSlider) {
-
-    dyeSlider.addEventListener(
-
-        "input",
-
-        function () {
-
-            experiment.tracerConcentration =
-
-                Number(this.value);
-
-            document.getElementById(
-
-                "dye-value"
-
-            ).textContent =
-
-                `${this.value}%`;
-
-        }
-
-    );
+  }
 
 }
 
-if (timeSlider) {
 
-    timeSlider.addEventListener(
 
-        "input",
+/* =========================================================
+   CONTINUE TO FLOW
+========================================================= */
 
-        function () {
+continueToFlow.addEventListener("click", () => {
 
-            experiment.observationTime =
+  if (!state.decellComplete) {
+    return;
+  }
 
-                Number(this.value);
 
-            document.getElementById(
+  setStep(3);
 
-                "time-value"
+});
 
-            ).textContent =
 
-                this.value;
 
-        }
+/* =========================================================
+   FLOW CONTROLS
+========================================================= */
 
-    );
+dyeRange.addEventListener("input", () => {
+
+  state.dye =
+    Number(dyeRange.value);
+
+
+  updateFlowControls();
+
+});
+
+
+timeRange.addEventListener("input", () => {
+
+  state.observationTime =
+    Number(timeRange.value);
+
+
+  updateFlowControls();
+
+});
+
+
+function updateFlowControls() {
+
+  dyeValue.textContent =
+    `${state.dye}%`;
+
+
+  timeValue.textContent =
+    state.observationTime;
+
+
+  updateModelValues();
 
 }
 
-/* =========================================
 
+
+/* =========================================================
    FLOW MODEL
-
-========================================= */
+========================================================= */
 
 function calculateFlowModel() {
 
-    const concentration =
+  /*
+    Educational model only.
 
-        experiment.tracerConcentration;
+    Dye intensity:
+    - affects how visible the tracer is
 
-    const time =
+    Observation time:
+    - increases modeled network reach
 
-        experiment.observationTime;
+    These values are NOT experimentally calibrated.
+  */
 
-    /*
 
-       Educational transport model.
+  const dyeFactor =
+    state.dye / 100;
 
-       It deliberately does NOT use a claim
 
-       that this equals real physiological flow.
+  const time =
+    state.observationTime;
 
-    */
 
-    const baseDistance =
+  const timeFactor =
+    Math.min(
+      1,
+      time / 30
+    );
 
-        0.55 * time;
 
-    const concentrationFactor =
+  const modeledDistance =
+    20 +
+    (dyeFactor * 18) +
+    (timeFactor * 62);
 
-        0.55 + concentration / 200;
 
-    experiment.tracerDistance =
+  const modeledCoverage =
+    Math.min(
+      96,
+      18 +
+      (dyeFactor * 25) +
+      (timeFactor * 58)
+    );
 
-        Math.min(
 
-            55,
+  const modeledVelocity =
+    modeledDistance / time;
 
-            baseDistance * concentrationFactor
 
-        );
+  return {
 
-    experiment.modelVelocity =
+    distance: modeledDistance,
 
-        experiment.tracerDistance / time;
+    coverage: modeledCoverage,
 
-    experiment.tracerCoverage =
+    velocity: modeledVelocity
 
-        Math.min(
-
-            100,
-
-            Math.round(
-
-                experiment.tracerDistance * 1.7
-
-            )
-
-        );
+  };
 
 }
 
-/* =========================================
 
-   INJECT DYE
 
-========================================= */
+/* =========================================================
+   UPDATE MODEL VALUES
+========================================================= */
 
-function injectDye() {
+function updateModelValues() {
 
-    if (!experiment.washingCompleted) {
-
-        /*
-
-           Normally unreachable because the user
-
-           reaches this page through the wash step.
-
-        */
-
-        alert(
-
-            "Please complete the decellularization and washing stages first."
-
-        );
-
-        return;
-
-    }
-
-    experiment.flowStarted = true;
-
+  const result =
     calculateFlowModel();
 
-    document.getElementById(
 
-        "flow-status"
+  state.distance =
+    result.distance;
 
-    ).textContent =
 
-        "FLOW ACTIVE";
+  state.coverage =
+    result.coverage;
 
-    document.getElementById(
 
-        "flow-label"
+  state.velocity =
+    result.velocity;
 
-    ).textContent =
 
-        "TRACER MOVING THROUGH NETWORK";
+  if (!state.flowRunning) {
 
-    updateFlowReadout();
+    distanceValue.textContent =
+      "0";
 
-    animateTracer();
+    velocityValue.textContent =
+      "0";
 
-    const button =
+    coverageValue.textContent =
+      "0";
 
-        document.getElementById(
-
-            "inject-button"
-
-        );
-
-    button.disabled = true;
-
-    button.textContent =
-
-        "TRACER INJECTED";
-
-    setTimeout(() => {
-
-        button.textContent =
-
-            "FLOW OBSERVED";
-
-        document.getElementById(
-
-            "analysis-button"
-
-        ).classList.remove("hidden");
-
-        experiment.analysisReady = true;
-
-    }, 3200);
+  }
 
 }
 
-/* =========================================
 
-   FLOW READOUT
 
-========================================= */
+/* =========================================================
+   START FLOW
+========================================================= */
 
-function updateFlowReadout() {
+startFlow.addEventListener(
+  "click",
+  startTracerFlow
+);
 
-    document.getElementById(
 
-        "distance-value"
+function startTracerFlow() {
 
-    ).textContent =
+  if (state.flowRunning) {
+    return;
+  }
 
-        experiment.tracerDistance.toFixed(1);
 
-    document.getElementById(
+  state.flowRunning = true;
 
-        "velocity-value"
+  state.flowComplete = false;
 
-    ).textContent =
 
-        experiment.modelVelocity.toFixed(2);
+  startFlow.classList.add("hidden");
 
-    document.getElementById(
+  stopFlow.classList.remove("hidden");
 
-        "coverage-value"
 
-    ).textContent =
+  flowStatus.classList.add("running");
 
-        experiment.tracerCoverage;
+  flowStatus.classList.remove("complete");
 
-}
+  flowStatus.innerHTML =
+    "<i></i> FLOW RUNNING";
 
-/* =========================================
 
-   TRACER ANIMATION
+  /*
+    Make tracer particles visible.
+  */
 
-========================================= */
+  flowParticles.forEach(
+    particle => {
 
-function animateTracer() {
-
-    const layer =
-
-        document.getElementById(
-
-            "dye-layer"
-
-        );
-
-    layer.innerHTML = "";
-
-    /*
-
-       Approximate vein coordinates inside
-
-       the visualization.
-
-       These are visual model coordinates,
-
-       not measured anatomical coordinates.
-
-    */
-
-    const path = [
-
-        [50, 73],
-
-        [50, 65],
-
-        [50, 57],
-
-        [50, 49],
-
-        [50, 42],
-
-        [47, 36],
-
-        [42, 32],
-
-        [36, 29],
-
-        [31, 26]
-
-    ];
-
-    path.forEach(
-
-        (point, index) => {
-
-            const particle =
-
-                document.createElement("div");
-
-            particle.className =
-
-                "flow-particle";
-
-            particle.style.left =
-
-                `${point[0]}%`;
-
-            particle.style.top =
-
-                `${point[1]}%`;
-
-            particle.style.opacity =
-
-                "0";
-
-            particle.style.animationDelay =
-
-                `${index * 0.22}s`;
-
-            layer.appendChild(
-
-                particle
-
-            );
-
-            setTimeout(() => {
-
-                particle.style.opacity =
-
-                    "1";
-
-            }, index * 220);
-
-        }
-
-    );
-
-    /*
-
-       Add branch particles after the main
-
-       pathway becomes visible.
-
-    */
-
-    setTimeout(() => {
-
-        createBranchParticles();
-
-    }, 1800);
-
-}
-
-/* =========================================
-
-   BRANCH PARTICLES
-
-========================================= */
-
-function createBranchParticles() {
-
-    const layer =
-
-        document.getElementById(
-
-            "dye-layer"
-
-        );
-
-    const branches = [
-
-        [42, 34],
-
-        [35, 40],
-
-        [57, 44],
-
-        [37, 50],
-
-        [62, 54],
-
-        [39, 61]
-
-    ];
-
-    branches.forEach(
-
-        (point, index) => {
-
-            const particle =
-
-                document.createElement("div");
-
-            particle.className =
-
-                "flow-particle";
-
-            particle.style.left =
-
-                `${point[0]}%`;
-
-            particle.style.top =
-
-                `${point[1]}%`;
-
-            particle.style.opacity =
-
-                "0";
-
-            layer.appendChild(
-
-                particle
-
-            );
-
-            setTimeout(() => {
-
-                particle.style.opacity =
-
-                    "1";
-
-            }, index * 170);
-
-        }
-
-    );
-
-}
-
-/* =========================================
-
-   ANALYSIS
-
-========================================= */
-
-function goToAnalysis() {
-
-    if (!experiment.analysisReady) {
-
-        return;
+      particle.style.opacity =
+        0.35 +
+        state.dye / 150;
 
     }
+  );
+
+
+  animateFlow();
+
+}
+
+
+
+/* =========================================================
+   FLOW ANIMATION
+========================================================= */
+
+function animateFlow() {
+
+  const result =
+    calculateFlowModel();
+
+
+  state.distance =
+    result.distance;
+
+
+  state.coverage =
+    result.coverage;
+
+
+  state.velocity =
+    result.velocity;
+
+
+  distanceValue.textContent =
+    state.distance.toFixed(1);
+
+
+  velocityValue.textContent =
+    state.velocity.toFixed(2);
+
+
+  coverageValue.textContent =
+    Math.round(state.coverage);
+
+
+  /*
+    Particle animation.
+
+    The paths are SVG paths. Each particle follows
+    the main vascular path visually.
+  */
+
+
+  const mainPath =
+    document.querySelector(
+      ".main-flow-vein"
+    );
+
+
+  if (!mainPath) {
+    finishFlow();
+    return;
+  }
+
+
+  const totalLength =
+    mainPath.getTotalLength();
+
+
+  const start =
+    performance.now();
+
+
+  function frame(now) {
+
+    if (!state.flowRunning) {
+      return;
+    }
+
+
+    const elapsed =
+      now - start;
+
+
+    /*
+      Longer observation time = slower visual cycle,
+      but more network coverage in the model.
+    */
+
+    const cycleDuration =
+      4200 /
+      Math.max(
+        0.6,
+        state.dye / 60
+      );
+
+
+    const baseProgress =
+      (elapsed % cycleDuration) /
+      cycleDuration;
+
+
+    flowParticles.forEach(
+      (particle, index) => {
+
+        const offset =
+          index * 0.085;
+
+
+        let progress =
+          baseProgress + offset;
+
+
+        if (progress > 1) {
+          progress -= 1;
+        }
+
+
+        const point =
+          mainPath.getPointAtLength(
+            progress * totalLength
+          );
+
+
+        particle.setAttribute(
+          "cx",
+          point.x
+        );
+
+
+        particle.setAttribute(
+          "cy",
+          point.y
+        );
+
+
+        particle.style.opacity =
+          Math.max(
+            0,
+            Math.sin(progress * Math.PI)
+          ) *
+          (0.45 + state.dye / 120);
+
+      }
+    );
+
+
+    /*
+      Flow runs until one visual cycle is complete.
+    */
+
+    if (elapsed < cycleDuration * 1.25) {
+
+      state.animationFrame =
+        requestAnimationFrame(frame);
+
+    } else {
+
+      finishFlow();
+
+    }
+
+  }
+
+
+  state.animationFrame =
+    requestAnimationFrame(frame);
+
+}
+
+
+
+/* =========================================================
+   FINISH FLOW
+========================================================= */
+
+function finishFlow() {
+
+  state.flowRunning = false;
+
+  state.flowComplete = true;
+
+
+  if (state.animationFrame) {
+
+    cancelAnimationFrame(
+      state.animationFrame
+    );
+
+  }
+
+
+  const result =
+    calculateFlowModel();
+
+
+  state.distance =
+    result.distance;
+
+
+  state.coverage =
+    result.coverage;
+
+
+  state.velocity =
+    result.velocity;
+
+
+  distanceValue.textContent =
+    state.distance.toFixed(1);
+
+
+  velocityValue.textContent =
+    state.velocity.toFixed(2);
+
+
+  coverageValue.textContent =
+    Math.round(state.coverage);
+
+
+  flowParticles.forEach(
+    particle => {
+
+      particle.style.opacity =
+        0.15;
+
+    }
+  );
+
+
+  startFlow.classList.remove("hidden");
+
+  stopFlow.classList.add("hidden");
+
+
+  startFlow.innerHTML =
+    "<span>Run Tracer Flow Again</span><b>↻</b>";
+
+
+  flowStatus.classList.remove("running");
+
+  flowStatus.classList.add("complete");
+
+  flowStatus.innerHTML =
+    "<i></i> MODEL COMPLETE";
+
+
+  continueToAnalysis.classList.remove(
+    "hidden"
+  );
+
+
+  unlockStep(4);
+
+
+  updateAnalysis();
+
+}
+
+
+
+/* =========================================================
+   STOP FLOW
+========================================================= */
+
+stopFlow.addEventListener("click", () => {
+
+  state.flowRunning = false;
+
+
+  if (state.animationFrame) {
+
+    cancelAnimationFrame(
+      state.animationFrame
+    );
+
+  }
+
+
+  flowParticles.forEach(
+    particle => {
+
+      particle.style.opacity = 0;
+
+    }
+  );
+
+
+  startFlow.classList.remove("hidden");
+
+  stopFlow.classList.add("hidden");
+
+
+  flowStatus.classList.remove(
+    "running"
+  );
+
+  flowStatus.innerHTML =
+    "<i></i> STOPPED";
+
+});
+
+
+
+/* =========================================================
+   CONTINUE TO ANALYSIS
+========================================================= */
+
+continueToAnalysis.addEventListener(
+  "click",
+  () => {
+
+    if (!state.flowComplete) {
+      return;
+    }
+
 
     updateAnalysis();
 
-    showStep(4);
+    setStep(4);
 
-}
+  }
+);
 
-/* =========================================
 
-   UPDATE ANALYSIS
 
-========================================= */
-
-function updateAnalysis() {
-
-    calculateFlowModel();
-
-    document.getElementById(
-
-        "metric-removal"
-
-    ).textContent =
-
-        `${experiment.cellularRemoval}%`;
-
-    document.getElementById(
-
-        "metric-preservation"
-
-    ).textContent =
-
-        `${experiment.structuralPreservation}%`;
-
-    document.getElementById(
-
-        "metric-coverage"
-
-    ).textContent =
-
-        `${experiment.tracerCoverage}%`;
-
-    document.getElementById(
-
-        "metric-velocity"
-
-    ).textContent =
-
-        experiment.modelVelocity.toFixed(2);
-
-    const observation =
-
-        document.getElementById(
-
-            "observation-text"
-
-        );
-
-    observation.innerHTML = `
-
-        The simulation models substantial removal of
-
-        cellular material while retaining a visible
-
-        branching structure.
-
-        <br><br>
-
-        After the virtual washing stage, the tracer
-
-        reaches the modeled main vein and branches.
-
-        <br><br>
-
-        The calculated model velocity is
-
-        <strong>${experiment.modelVelocity.toFixed(2)} mm/s</strong>,
-
-        based only on the simulated distance and
-
-        observation time.
-
-    `;
-
-    const interpretation =
-
-        document.getElementById(
-
-            "interpretation-text"
-
-        );
-
-    interpretation.innerHTML = `
-
-        The simulation is consistent with the intended
-
-        hypothesis at the <strong>model level</strong>:
-
-        the structural network is represented as being
-
-        retained after cellular-material removal, and a
-
-        liquid tracer can be represented as traveling
-
-        through that network.
-
-        <br><br>
-
-        However, this does <strong>not</strong> demonstrate
-
-        complete decellularization or equivalence to human
-
-        blood vessels. Those conclusions require actual
-
-        experimental measurements such as DNA/protein
-
-        quantification, histological assessment, and
-
-        independent perfusion testing.
-
-    `;
-
-    const summary =
-
-        document.getElementById(
-
-            "final-summary"
-
-        );
-
-    summary.textContent =
-
-        "The virtual experiment produced the expected model behavior: cellular material decreased, the modeled leaf vascular structure remained largely preserved, and tracer transport through the network was observed. These are simulated observations rather than measurements from a real spinach leaf.";
-
-    createChart();
-
-}
-
-/* =========================================
-
+/* =========================================================
    CHART
+========================================================= */
 
-========================================= */
+function setupChart() {
 
-function createChart() {
+  const canvas =
+    document.getElementById(
+      "coverageChart"
+    );
 
-    const canvas =
 
-        document.getElementById(
+  if (!canvas || typeof Chart === "undefined") {
+    return;
+  }
 
-            "flowChart"
 
-        );
+  const ctx =
+    canvas.getContext("2d");
 
-    if (!canvas) {
 
-        return;
+  state.chart =
+    new Chart(ctx, {
 
-    }
+      type: "line",
 
-    if (experiment.chart) {
+      data: {
 
-        experiment.chart.destroy();
+        labels: [
+          "2",
+          "6",
+          "10",
+          "14",
+          "18",
+          "22",
+          "26",
+          "30"
+        ],
 
-    }
+        datasets: [
 
-    const totalTime =
+          {
 
-        experiment.observationTime;
+            label:
+              "Modelled network coverage",
 
-    const labels = [];
+            data:
+              calculateCoverageCurve(),
 
-    const data = [];
+            borderWidth: 2,
 
-    const points = 7;
+            tension: 0.35,
 
-    for (
+            pointRadius: 2,
 
-        let i = 0;
+            pointHoverRadius: 4
 
-        i <= points;
+          }
 
-        i++
+        ]
 
-    ) {
+      },
 
-        const time =
 
-            Math.round(
+      options: {
 
-                (totalTime / points) * i
+        responsive: true,
 
-            );
+        maintainAspectRatio: false,
 
-        labels.push(
+        plugins: {
 
-            `${time}s`
+          legend: {
+            display: false
+          },
 
-        );
+          tooltip: {
 
-        const coverage =
+            callbacks: {
 
-            Math.min(
+              label: context => {
 
-                100,
+                return `${context.parsed.y}% model coverage`;
 
-                Math.round(
-
-                    experiment.tracerCoverage *
-
-                    (i / points)
-
-                )
-
-            );
-
-        data.push(
-
-            coverage
-
-        );
-
-    }
-
-    experiment.chart =
-
-        new Chart(
-
-            canvas.getContext("2d"),
-
-            {
-
-                type: "line",
-
-                data: {
-
-                    labels: labels,
-
-                    datasets: [
-
-                        {
-
-                            label:
-
-                                "Simulated tracer coverage",
-
-                            data: data,
-
-                            borderColor:
-
-                                "#6fd39a",
-
-                            backgroundColor:
-
-                                "rgba(111,211,154,0.10)",
-
-                            borderWidth: 2,
-
-                            tension: 0.35,
-
-                            fill: true,
-
-                            pointRadius: 3,
-
-                            pointBackgroundColor:
-
-                                "#6fd39a"
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false,
-
-                    plugins: {
-
-                        legend: {
-
-                            labels: {
-
-                                color: "#7e8a90",
-
-                                font: {
-
-                                    size: 10
-
-                                }
-
-                            }
-
-                        }
-
-                    },
-
-                    scales: {
-
-                        x: {
-
-                            ticks: {
-
-                                color: "#69767c",
-
-                                font: {
-
-                                    size: 10
-
-                                }
-
-                            },
-
-                            grid: {
-
-                                color:
-
-                                    "rgba(90,105,110,0.12)"
-
-                            }
-
-                        },
-
-                        y: {
-
-                            beginAtZero: true,
-
-                            max: 100,
-
-                            title: {
-
-                                display: true,
-
-                                text:
-
-                                    "Coverage (%)",
-
-                                color: "#69767c"
-
-                            },
-
-                            ticks: {
-
-                                color: "#69767c"
-
-                            },
-
-                            grid: {
-
-                                color:
-
-                                    "rgba(90,105,110,0.12)"
-
-                            }
-
-                        }
-
-                    }
-
-                }
+              }
 
             }
 
-        );
+          }
+
+        },
+
+
+        scales: {
+
+          x: {
+
+            grid: {
+              color:
+                "rgba(255,255,255,0.035)"
+            },
+
+            ticks: {
+
+              color: "#61766e",
+
+              font: {
+                size: 8
+              }
+
+            },
+
+            title: {
+
+              display: true,
+
+              text:
+                "Observation time",
+
+              color: "#4f665e",
+
+              font: {
+                size: 8
+              }
+
+            }
+
+          },
+
+
+          y: {
+
+            beginAtZero: true,
+
+            max: 100,
+
+            grid: {
+              color:
+                "rgba(255,255,255,0.035)"
+            },
+
+            ticks: {
+
+              color: "#61766e",
+
+              font: {
+                size: 8
+              },
+
+              callback: value => `${value}%`
+
+            }
+
+          }
+
+        }
+
+      }
+
+    });
 
 }
 
-/* =========================================
 
-   DECELLULARIZATION UI
 
-========================================= */
+/* =========================================================
+   COVERAGE CURVE
+========================================================= */
 
-function updateDecellularizationUI() {
+function calculateCoverageCurve() {
 
-    document.getElementById(
+  const values = [];
 
-        "treatment-slider"
 
-    ).value =
+  for (
+    let time = 2;
+    time <= 30;
+    time += 4
+  ) {
 
-        experiment.treatmentProgress;
+    const dyeFactor =
+      state.dye / 100;
 
-    updateTreatmentFromSlider();
+
+    const timeFactor =
+      Math.min(
+        1,
+        time / 30
+      );
+
+
+    const coverage =
+      Math.min(
+        96,
+        18 +
+        (dyeFactor * 25) +
+        (timeFactor * 58)
+      );
+
+
+    values.push(
+      Math.round(coverage)
+    );
+
+  }
+
+
+  return values;
 
 }
 
-/* =========================================
 
+
+/* =========================================================
+   UPDATE CHART
+========================================================= */
+
+function updateChart() {
+
+  if (!state.chart) {
+    return;
+  }
+
+
+  state.chart.data.datasets[0].data =
+    calculateCoverageCurve();
+
+
+  state.chart.update();
+
+}
+
+
+
+/* =========================================================
+   ANALYSIS
+========================================================= */
+
+function updateAnalysis() {
+
+  const structuralVisibility =
+    Math.round(
+      20 +
+      (state.decellProgress * 0.76)
+    );
+
+
+  finalVisibility.textContent =
+    `${structuralVisibility}%`;
+
+
+  finalCoverage.textContent =
+    `${Math.round(state.coverage)}%`;
+
+
+  finalVelocity.textContent =
+    state.velocity > 0
+      ? state.velocity.toFixed(2)
+      : "0";
+
+
+  updateChart();
+
+}
+
+
+
+/* =========================================================
    RESET
+========================================================= */
 
-========================================= */
+resetButton.addEventListener(
+  "click",
+  resetExperiment
+);
+
+
+restartExperiment.addEventListener(
+  "click",
+  resetExperiment
+);
+
 
 function resetExperiment() {
 
-    experiment.currentStep = 1;
+  /*
+    Stop animations
+  */
 
-    experiment.started = false;
+  state.flowRunning = false;
 
-    experiment.treatmentStarted = false;
 
-    experiment.washingCompleted = false;
+  if (state.animationFrame) {
 
-    experiment.flowStarted = false;
+    cancelAnimationFrame(
+      state.animationFrame
+    );
 
-    experiment.analysisReady = false;
+  }
 
-    experiment.treatmentProgress = 0;
 
-    experiment.cellularRemoval = 0;
+  /*
+    Reset state
+  */
 
-    experiment.structuralPreservation = 100;
+  state.currentStep = 1;
 
-    experiment.tracerConcentration = 50;
+  state.unlockedStep = 1;
 
-    experiment.observationTime = 30;
+  state.experimentStarted = false;
 
-    experiment.tracerDistance = 0;
+  state.decellProgress = 0;
 
-    experiment.tracerCoverage = 0;
+  state.decellComplete = false;
 
-    experiment.modelVelocity = 0;
+  state.flowRunning = false;
 
-    /* treatment */
+  state.flowComplete = false;
 
-    const treatment =
+  state.dye = 60;
 
-        document.getElementById(
+  state.observationTime = 10;
 
-            "treatment-slider"
+  state.distance = 0;
 
-        );
+  state.velocity = 0;
 
-    treatment.value = 0;
+  state.coverage = 0;
 
-    const treatmentButton =
 
-        document.getElementById(
+  /*
+    Reset controls
+  */
 
-            "treatment-button"
+  dyeRange.value = 60;
 
-        );
+  timeRange.value = 10;
 
-    treatmentButton.disabled = false;
 
-    treatmentButton.textContent =
+  dyeValue.textContent =
+    "60%";
 
-        "START TREATMENT";
+  timeValue.textContent =
+    "10";
 
-    document.getElementById(
 
-        "wash-button"
+  /*
+    Reset decell
+  */
 
-    ).classList.add("hidden");
+  startDecellularization.disabled =
+    false;
 
-    document.getElementById(
 
-        "decell-status"
+  startDecellularization.innerHTML =
+    "<span>Start Decellularization Model</span><b>▶</b>";
 
-    ).textContent =
 
-        "READY";
+  continueToFlow.classList.add(
+    "hidden"
+  );
 
-    /* flow */
 
-    document.getElementById(
+  decellStatus.classList.remove(
+    "running",
+    "complete"
+  );
 
-        "dye-slider"
 
-    ).value = 50;
+  decellStatus.innerHTML =
+    "<i></i> READY";
 
-    document.getElementById(
 
-        "time-slider"
+  updateDecellVisual(0);
 
-    ).value = 30;
 
-    document.getElementById(
+  /*
+    Reset flow
+  */
 
-        "dye-value"
+  startFlow.classList.remove(
+    "hidden"
+  );
 
-    ).textContent =
 
-        "50%";
+  stopFlow.classList.add(
+    "hidden"
+  );
 
-    document.getElementById(
 
-        "time-value"
+  continueToAnalysis.classList.add(
+    "hidden"
+  );
 
-    ).textContent =
 
-        "30";
+  startFlow.innerHTML =
+    "<span>Start Tracer Flow</span><b>▶</b>";
 
-    document.getElementById(
 
-        "distance-value"
+  flowStatus.classList.remove(
+    "running",
+    "complete"
+  );
 
-    ).textContent =
 
-        "0.0";
+  flowStatus.innerHTML =
+    "<i></i> READY";
 
-    document.getElementById(
 
-        "velocity-value"
+  flowParticles.forEach(
+    particle => {
 
-    ).textContent =
+      particle.style.opacity = 0;
 
-        "0.00";
+      particle.setAttribute(
+        "cx",
+        "100"
+      );
 
-    document.getElementById(
-
-        "coverage-value"
-
-    ).textContent =
-
-        "0";
-
-    document.getElementById(
-
-        "flow-status"
-
-    ).textContent =
-
-        "READY";
-
-    document.getElementById(
-
-        "flow-label"
-
-    ).textContent =
-
-        "WAITING FOR INJECTION";
-
-    const injectButton =
-
-        document.getElementById(
-
-            "inject-button"
-
-        );
-
-    injectButton.disabled = false;
-
-    injectButton.textContent =
-
-        "INJECT TRACER";
-
-    document.getElementById(
-
-        "analysis-button"
-
-    ).classList.add("hidden");
-
-    document.getElementById(
-
-        "dye-layer"
-
-    ).innerHTML = "";
-
-    /* analysis */
-
-    document.getElementById(
-
-        "metric-removal"
-
-    ).textContent =
-
-        "0%";
-
-    document.getElementById(
-
-        "metric-preservation"
-
-    ).textContent =
-
-        "100%";
-
-    document.getElementById(
-
-        "metric-coverage"
-
-    ).textContent =
-
-        "0%";
-
-    document.getElementById(
-
-        "metric-velocity"
-
-    ).textContent =
-
-        "0.00";
-
-    document.getElementById(
-
-        "observation-text"
-
-    ).textContent =
-
-        "No simulation has been completed yet.";
-
-    document.getElementById(
-
-        "interpretation-text"
-
-    ).textContent =
-
-        "Complete the simulated experiment to generate an interpretation.";
-
-    document.getElementById(
-
-        "final-summary"
-
-    ).textContent =
-
-        "Complete all simulated stages to obtain the final interpretation.";
-
-    if (experiment.chart) {
-
-        experiment.chart.destroy();
-
-        experiment.chart = null;
+      particle.setAttribute(
+        "cy",
+        "330"
+      );
 
     }
+  );
 
-    updateDecellularizationUI();
 
-    showStep(1);
+  /*
+    Reset navigation
+  */
+
+  stepButtons.forEach(
+    button => {
+
+      const step =
+        Number(button.dataset.step);
+
+
+      button.classList.remove(
+        "completed"
+      );
+
+
+      if (step === 1) {
+
+        button.classList.remove(
+          "locked"
+        );
+
+        button.querySelector(
+          ".step-status"
+        ).textContent = "●";
+
+      } else {
+
+        button.classList.add(
+          "locked"
+        );
+
+        button.querySelector(
+          ".step-status"
+        ).textContent = "○";
+
+      }
+
+    }
+  );
+
+
+  /*
+    Reset mode to Guided
+  */
+
+  state.mode = "guided";
+
+  guidedMode.classList.add("active");
+  freeMode.classList.remove("active");
+
+
+  /*
+    Reset analysis
+  */
+
+  updateAnalysis();
+
+
+  /*
+    Return to beginning
+  */
+
+  setStep(1);
 
 }
 
-/* =========================================
 
-   INITIALIZE
 
-========================================= */
+/* =========================================================
+   KEYBOARD SHORTCUT
+========================================================= */
 
 document.addEventListener(
+  "keydown",
+  event => {
 
-    "DOMContentLoaded",
+    if (event.key === "Escape") {
 
-    function () {
+      if (state.flowRunning) {
 
-        updateDecellularizationUI();
+        stopFlow.click();
 
-        showStep(1);
+      }
 
     }
 
+  }
 );
