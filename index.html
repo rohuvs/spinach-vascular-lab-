@@ -1,1069 +1,1968 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-    <title>Spinach Vascular Lab</title>
+  <title>Spinach Vascular Scaffold Simulator</title>
 
-    <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+  ></script>
 </head>
 
 <body>
 
-<div class="app">
+<div class="app-shell">
 
-    <!-- =========================
-         TOP BAR
-    ========================== -->
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-mark">SV</div>
+
+      <div>
+        <div class="brand-title">SPIN-SCAFFOLD</div>
+        <div class="brand-subtitle">VIRTUAL LAB</div>
+      </div>
+    </div>
+
+
+    <div class="experiment-label">
+      EXPERIMENT
+    </div>
+
+
+    <nav class="step-navigation">
+
+      <button
+        class="step-button active"
+        data-step="1"
+        type="button"
+      >
+        <span class="step-number">01</span>
+
+        <span class="step-info">
+          <strong>Sample</strong>
+          <small>Objective</small>
+        </span>
+
+        <span class="step-status">●</span>
+      </button>
+
+
+      <button
+        class="step-button locked"
+        data-step="2"
+        type="button"
+      >
+        <span class="step-number">02</span>
+
+        <span class="step-info">
+          <strong>Decellularization</strong>
+          <small>Treatment</small>
+        </span>
+
+        <span class="step-status">○</span>
+      </button>
+
+
+      <button
+        class="step-button locked"
+        data-step="3"
+        type="button"
+      >
+        <span class="step-number">03</span>
+
+        <span class="step-info">
+          <strong>Vascular Flow</strong>
+          <small>Tracer simulation</small>
+        </span>
+
+        <span class="step-status">○</span>
+      </button>
+
+
+      <button
+        class="step-button locked"
+        data-step="4"
+        type="button"
+      >
+        <span class="step-number">04</span>
+
+        <span class="step-info">
+          <strong>Analysis</strong>
+          <small>Results</small>
+        </span>
+
+        <span class="step-status">○</span>
+      </button>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+      <div class="mode-box">
+
+        <div class="mode-title">
+          EXPERIMENT MODE
+        </div>
+
+        <div class="mode-buttons">
+
+          <button
+            id="guidedMode"
+            class="mode-button active"
+            type="button"
+          >
+            Guided
+          </button>
+
+          <button
+            id="freeMode"
+            class="mode-button"
+            type="button"
+          >
+            Free
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="resetButton"
+        class="reset-button"
+        type="button"
+      >
+        ↻ Reset Experiment
+      </button>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================
+       MAIN AREA
+  ====================================================== -->
+  <main class="main-area">
+
+    <!-- TOP HEADER -->
     <header class="topbar">
 
-        <div class="brand">
+      <div class="topbar-left">
 
-            <div class="brand-icon">🧬</div>
+        <div class="live-dot"></div>
 
-            <div>
-                <h1>Spinach Vascular Lab</h1>
-                <p>
-                    Virtual Decellularization &amp; Vascular Simulation
-                </p>
-            </div>
+        <span>VIRTUAL LAB</span>
 
+        <span class="topbar-divider">/</span>
+
+        <span id="topbarStage">
+          SAMPLE PREPARATION
+        </span>
+
+      </div>
+
+
+      <div class="topbar-right">
+
+        <div class="sample-chip">
+          SAMPLE ID
+          <strong>SP-2026-001</strong>
         </div>
 
-        <div class="system-status">
-            <span class="status-dot"></span>
-            SYSTEM ONLINE
+        <div class="status-chip">
+          <span></span>
+          SIMULATION READY
         </div>
+
+      </div>
 
     </header>
 
 
-    <!-- =========================
-         MAIN LAYOUT
-    ========================== -->
-    <div class="layout">
+
+    <!-- =====================================================
+         CONTENT
+    ====================================================== -->
+    <section class="content">
+
+      <!-- ===================================================
+           GLOBAL TITLE
+      ==================================================== -->
+      <div class="page-heading">
+
+        <div>
+
+          <div class="eyebrow">
+            TISSUE ENGINEERING / PLANT-DERIVED SCAFFOLD
+          </div>
+
+          <h1>
+            Spinach Vascular Scaffold
+            <span>Simulator</span>
+          </h1>
+
+          <p>
+            시금치 잎의 세포 성분을 제거한 뒤 남은 관다발 구조를
+            관찰하고, 그 네트워크를 통한 유체 이동을 모델링하는
+            교육용 가상 실험입니다.
+          </p>
+
+        </div>
 
 
-        <!-- =========================
-             SIDEBAR
-        ========================== -->
+        <div class="experiment-id">
+          <span>EXPERIMENT ID</span>
+          <strong>SPN-VS-001</strong>
+        </div>
 
-        <aside class="sidebar">
+      </div>
 
-            <div class="sidebar-title">
-                EXPERIMENT
+
+
+      <!-- ===================================================
+           PROCESS TIMELINE
+      ==================================================== -->
+      <div class="process-timeline">
+
+        <div
+          class="timeline-item active"
+          data-timeline="1"
+        >
+          <div class="timeline-circle">01</div>
+          <div>
+            <strong>Sample</strong>
+            <span>Initial state</span>
+          </div>
+        </div>
+
+
+        <div class="timeline-line"></div>
+
+
+        <div
+          class="timeline-item"
+          data-timeline="2"
+        >
+          <div class="timeline-circle">02</div>
+          <div>
+            <strong>Decellularization</strong>
+            <span>Cell removal model</span>
+          </div>
+        </div>
+
+
+        <div class="timeline-line"></div>
+
+
+        <div
+          class="timeline-item"
+          data-timeline="3"
+        >
+          <div class="timeline-circle">03</div>
+          <div>
+            <strong>Flow</strong>
+            <span>Tracer transport</span>
+          </div>
+        </div>
+
+
+        <div class="timeline-line"></div>
+
+
+        <div
+          class="timeline-item"
+          data-timeline="4"
+        >
+          <div class="timeline-circle">04</div>
+          <div>
+            <strong>Analysis</strong>
+            <span>Interpretation</span>
+          </div>
+        </div>
+
+      </div>
+
+
+
+      <!-- ===================================================
+           STEP 1
+      ==================================================== -->
+      <section
+        id="step1"
+        class="step-panel active"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+            <div class="section-kicker">
+              STAGE 01
+            </div>
+
+            <h2>
+              Sample & Objective
+            </h2>
+
+            <p>
+              실험에 사용할 시금치 잎의 초기 상태와
+              실험 목적을 확인합니다.
+            </p>
+
+          </div>
+
+          <div class="stage-badge">
+            INITIAL STATE
+          </div>
+
+        </div>
+
+
+
+        <div class="stage-grid">
+
+          <!-- LEAF VIEW -->
+          <div class="lab-card leaf-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">SAMPLE VIEW</span>
+                <h3>Spinach Leaf</h3>
+              </div>
+
+              <span class="state-indicator">
+                <i></i>
+                CELLULAR
+              </span>
+
             </div>
 
 
+            <div class="leaf-viewport">
+
+              <div class="viewport-grid"></div>
+
+              <div class="leaf-glow"></div>
+
+
+              <svg
+                class="leaf-svg"
+                viewBox="0 0 600 430"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-label="Spinach leaf model"
+              >
+
+                <defs>
+
+                  <linearGradient
+                    id="leafGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stop-color="#8bbf72"
+                    />
+
+                    <stop
+                      offset="55%"
+                      stop-color="#4f9b63"
+                    />
+
+                    <stop
+                      offset="100%"
+                      stop-color="#286448"
+                    />
+                  </linearGradient>
+
+
+                  <linearGradient
+                    id="veinGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="0"
+                  >
+                    <stop
+                      offset="0%"
+                      stop-color="#d8ead5"
+                    />
+
+                    <stop
+                      offset="100%"
+                      stop-color="#8fc39b"
+                    />
+                  </linearGradient>
+
+
+                  <filter id="leafShadow">
+                    <feDropShadow
+                      dx="0"
+                      dy="14"
+                      stdDeviation="15"
+                      flood-opacity=".35"
+                    />
+                  </filter>
+
+
+                  <clipPath id="leafClip">
+
+                    <path
+                      d="M120 360
+                         C55 315 42 215 90 125
+                         C142 28 280 18 405 62
+                         C508 98 566 180 528 273
+                         C490 366 353 414 240 397
+                         C185 389 148 376 120 360Z"
+                    />
+
+                  </clipPath>
+
+                </defs>
+
+
+                <!-- leaf body -->
+                <path
+                  id="leafShape"
+                  d="M120 360
+                     C55 315 42 215 90 125
+                     C142 28 280 18 405 62
+                     C508 98 566 180 528 273
+                     C490 366 353 414 240 397
+                     C185 389 148 376 120 360Z"
+                  fill="url(#leafGradient)"
+                  filter="url(#leafShadow)"
+                />
+
+
+                <!-- cellular texture -->
+                <g
+                  id="cellularLayer"
+                  clip-path="url(#leafClip)"
+                  opacity="1"
+                >
+
+                  <circle cx="160" cy="140" r="9"/>
+                  <circle cx="195" cy="105" r="7"/>
+                  <circle cx="230" cy="150" r="10"/>
+                  <circle cx="270" cy="110" r="8"/>
+                  <circle cx="315" cy="145" r="11"/>
+                  <circle cx="360" cy="105" r="7"/>
+                  <circle cx="410" cy="140" r="9"/>
+                  <circle cx="450" cy="180" r="8"/>
+                  <circle cx="135" cy="205" r="8"/>
+                  <circle cx="185" cy="220" r="11"/>
+                  <circle cx="230" cy="195" r="7"/>
+                  <circle cx="280" cy="220" r="10"/>
+                  <circle cx="330" cy="190" r="8"/>
+                  <circle cx="385" cy="220" r="11"/>
+                  <circle cx="435" cy="230" r="8"/>
+                  <circle cx="160" cy="280" r="10"/>
+                  <circle cx="210" cy="300" r="8"/>
+                  <circle cx="265" cy="275" r="11"/>
+                  <circle cx="320" cy="300" r="8"/>
+                  <circle cx="375" cy="275" r="10"/>
+                  <circle cx="425" cy="295" r="8"/>
+                  <circle cx="225" cy="350" r="9"/>
+                  <circle cx="290" cy="340" r="7"/>
+                  <circle cx="350" cy="350" r="10"/>
+                  <circle cx="410" cy="335" r="8"/>
+
+                </g>
+
+
+                <!-- vascular network -->
+                <g
+                  id="vascularNetwork"
+                  fill="none"
+                  stroke="url(#veinGradient)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+
+                  <!-- main vein -->
+                  <path
+                    class="vein main-vein"
+                    d="M92 334 C190 302 285 254 500 114"
+                  />
+
+                  <!-- branches -->
+                  <path
+                    class="vein"
+                    d="M165 307 C145 260 138 212 145 145"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M205 289 C190 238 195 181 215 116"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M245 270 C235 220 247 164 270 100"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M285 245 C285 194 302 145 330 90"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M330 215 C340 170 360 130 395 94"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M375 185 C390 150 418 122 450 112"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M145 302 C108 274 92 235 94 190"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M190 285 C150 270 119 242 105 210"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M235 265 C200 250 165 230 145 202"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M280 240 C245 225 210 208 185 180"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M325 215 C292 202 260 185 235 155"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M365 190 C335 175 310 150 290 125"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M410 160 C385 145 365 125 350 105"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M220 286 C245 310 280 325 325 330"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M285 245 C320 270 350 282 390 280"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M340 210 C370 230 400 240 435 235"
+                  />
+
+                  <path
+                    class="vein"
+                    d="M390 175 C420 190 448 194 475 187"
+                  />
+
+                </g>
+
+              </svg>
+
+
+              <div class="viewport-tag">
+                MODEL VIEW · NOT TO SCALE
+              </div>
+
+            </div>
+
+
+            <div class="leaf-legend">
+
+              <div>
+                <span class="legend-dot cellular-dot"></span>
+                Cellular tissue
+              </div>
+
+              <div>
+                <span class="legend-line"></span>
+                Vascular network
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- INFORMATION -->
+          <div class="right-column">
+
+            <div class="lab-card objective-card">
+
+              <div class="card-header">
+                <div>
+                  <span class="card-label">OBJECTIVE</span>
+                  <h3>What are we testing?</h3>
+                </div>
+              </div>
+
+
+              <div class="objective-main">
+
+                <div class="objective-number">
+                  01
+                </div>
+
+                <p>
+                  시금치 잎의 세포 성분을 제거하는
+                  <strong>탈세포화(decellularization)</strong>를
+                  개념적으로 모델링하고,
+                  이후 남아 있는 관다발 구조를 통한
+                  <strong>유체 이동 가능성</strong>을 관찰합니다.
+                </p>
+
+              </div>
+
+
+              <div class="science-warning">
+
+                <div class="warning-icon">!</div>
+
+                <div>
+
+                  <strong>Scientific distinction</strong>
+
+                  <p>
+                    시금치의 관다발은 인간의 혈관이 아닙니다.
+                    이 시뮬레이션은 식물의 관다발 네트워크와
+                    조직공학용 scaffold 개념의 구조적 유사성을
+                    모델링합니다.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="lab-card metadata-card">
+
+              <div class="card-header">
+
+                <div>
+                  <span class="card-label">SAMPLE METADATA</span>
+                  <h3>Specimen Information</h3>
+                </div>
+
+              </div>
+
+
+              <div class="metadata-grid">
+
+                <div class="metadata-item">
+                  <span>SPECIMEN</span>
+                  <strong>Spinach leaf</strong>
+                </div>
+
+                <div class="metadata-item">
+                  <span>MODEL</span>
+                  <strong>Leaf vasculature</strong>
+                </div>
+
+                <div class="metadata-item">
+                  <span>NETWORK</span>
+                  <strong>Branching structure</strong>
+                </div>
+
+                <div class="metadata-item">
+                  <span>TRACER</span>
+                  <strong>Colored dye</strong>
+                </div>
+
+              </div>
+
+            </div>
+
+
+
             <button
-                class="step-button active"
-                data-step="1"
-                onclick="showStep(1)"
+              id="beginExperiment"
+              class="primary-button"
+              type="button"
             >
+              <span>Begin Guided Experiment</span>
+              <b>→</b>
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ===================================================
+           STEP 2
+      ==================================================== -->
+      <section
+        id="step2"
+        class="step-panel"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+            <div class="section-kicker">
+              STAGE 02
+            </div>
+
+            <h2>
+              Decellularization Model
+            </h2>
+
+            <p>
+              세포 성분이 감소하고 상대적으로 관다발 구조가
+              드러나는 과정을 시각적으로 모델링합니다.
+            </p>
+
+          </div>
+
+          <div class="stage-badge">
+            TREATMENT MODEL
+          </div>
+
+        </div>
+
+
+
+        <div class="stage-grid decell-grid">
+
+          <div class="lab-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">PROCESS</span>
+                <h3>Decellularization Workflow</h3>
+              </div>
+
+              <span
+                id="decellStatus"
+                class="state-indicator"
+              >
+                <i></i>
+                READY
+              </span>
+
+            </div>
+
+
+            <div class="process-visual">
+
+              <div class="process-step active">
                 <span>01</span>
-                <strong>Sample</strong>
-            </button>
+                <div>
+                  <strong>Prepare</strong>
+                  <small>Sample preparation</small>
+                </div>
+              </div>
 
+              <div class="process-connector"></div>
 
-            <button
-                class="step-button"
-                data-step="2"
-                onclick="showStep(2)"
-            >
+              <div class="process-step">
                 <span>02</span>
-                <strong>Decellularization</strong>
-            </button>
+                <div>
+                  <strong>Detergent treatment</strong>
+                  <small>Cellular material reduction</small>
+                </div>
+              </div>
 
+              <div class="process-connector"></div>
 
-            <button
-                class="step-button"
-                data-step="3"
-                onclick="showStep(3)"
-            >
+              <div class="process-step">
                 <span>03</span>
-                <strong>Vascular Flow</strong>
-            </button>
+                <div>
+                  <strong>Wash / clear</strong>
+                  <small>Residual material removal</small>
+                </div>
+              </div>
 
+              <div class="process-connector"></div>
 
-            <button
-                class="step-button"
-                data-step="4"
-                onclick="showStep(4)"
-            >
+              <div class="process-step">
                 <span>04</span>
-                <strong>Analysis</strong>
-            </button>
-
-
-            <div class="sample-id-box">
-
-                <div class="small-label">
-                    SAMPLE ID
+                <div>
+                  <strong>Observe</strong>
+                  <small>Structural visibility</small>
                 </div>
-
-                <div class="sample-id">
-                    SP-2026-001
-                </div>
+              </div>
 
             </div>
 
 
+            <div class="decell-visual">
+
+              <div class="mini-label">
+                MODELLED TRANSFORMATION
+              </div>
+
+
+              <div class="comparison-view">
+
+                <div class="comparison-side">
+
+                  <span class="comparison-label">
+                    INITIAL
+                  </span>
+
+                  <div class="mini-leaf initial-mini">
+
+                    <svg viewBox="0 0 250 190">
+
+                      <path
+                        d="M48 153
+                           C20 125 19 77 47 45
+                           C80 8 147 13 195 38
+                           C232 58 239 99 218 132
+                           C194 168 127 178 80 168
+                           C62 164 53 159 48 153Z"
+                        fill="#57996a"
+                      />
+
+                      <path
+                        d="M45 143 C90 125 135 101 211 49"
+                        fill="none"
+                        stroke="#c5dfc6"
+                        stroke-width="5"
+                      />
+
+                      <path
+                        d="M86 126 C72 100 72 73 79 47"
+                        fill="none"
+                        stroke="#c5dfc6"
+                        stroke-width="3"
+                      />
+
+                      <path
+                        d="M120 110 C113 84 122 61 133 38"
+                        fill="none"
+                        stroke="#c5dfc6"
+                        stroke-width="3"
+                      />
+
+                      <path
+                        d="M157 86 C166 65 181 50 197 43"
+                        fill="none"
+                        stroke="#c5dfc6"
+                        stroke-width="3"
+                      />
+
+                    </svg>
+
+                  </div>
+
+                </div>
+
+
+                <div class="comparison-arrow">
+                  →
+                </div>
+
+
+                <div class="comparison-side">
+
+                  <span class="comparison-label">
+                    MODELLED POST-TREATMENT
+                  </span>
+
+                  <div class="mini-leaf post-mini">
+
+                    <svg viewBox="0 0 250 190">
+
+                      <path
+                        id="postLeafShape"
+                        d="M48 153
+                           C20 125 19 77 47 45
+                           C80 8 147 13 195 38
+                           C232 58 239 99 218 132
+                           C194 168 127 178 80 168
+                           C62 164 53 159 48 153Z"
+                        fill="#9eaea7"
+                      />
+
+                      <g
+                        id="postVascularNetwork"
+                        fill="none"
+                        stroke="#edf8ed"
+                        stroke-linecap="round"
+                      >
+
+                        <path
+                          d="M45 143 C90 125 135 101 211 49"
+                          stroke-width="5"
+                        />
+
+                        <path
+                          d="M86 126 C72 100 72 73 79 47"
+                          stroke-width="3"
+                        />
+
+                        <path
+                          d="M120 110 C113 84 122 61 133 38"
+                          stroke-width="3"
+                        />
+
+                        <path
+                          d="M157 86 C166 65 181 50 197 43"
+                          stroke-width="3"
+                        />
+
+                        <path
+                          d="M92 123 C76 114 61 102 51 87"
+                          stroke-width="2"
+                        />
+
+                        <path
+                          d="M125 106 C111 98 99 87 92 73"
+                          stroke-width="2"
+                        />
+
+                        <path
+                          d="M158 84 C146 77 136 67 130 56"
+                          stroke-width="2"
+                        />
+
+                      </g>
+
+                    </svg>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="progress-area">
+
+              <div class="progress-top">
+
+                <span>
+                  MODEL PROGRESS
+                </span>
+
+                <strong id="decellProgressText">
+                  0%
+                </strong>
+
+              </div>
+
+              <div class="progress-track">
+
+                <div
+                  id="decellProgressBar"
+                  class="progress-fill"
+                  style="width:0%"
+                ></div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="right-column">
+
+            <div class="lab-card model-output-card">
+
+              <div class="card-header">
+
+                <div>
+                  <span class="card-label">MODEL OUTPUT</span>
+                  <h3>Structural Indicators</h3>
+                </div>
+
+              </div>
+
+
+              <div class="metric-stack">
+
+                <div class="metric-row">
+
+                  <div>
+                    <span>Cellular material remaining</span>
+                    <small>Educational model value</small>
+                  </div>
+
+                  <strong id="cellularRemaining">
+                    100%
+                  </strong>
+
+                </div>
+
+
+                <div class="metric-bar">
+                  <div
+                    id="cellularBar"
+                    style="width:100%"
+                  ></div>
+                </div>
+
+
+                <div class="metric-row">
+
+                  <div>
+                    <span>Vascular visibility</span>
+                    <small>Educational model value</small>
+                  </div>
+
+                  <strong id="vascularVisibility">
+                    20%
+                  </strong>
+
+                </div>
+
+
+                <div class="metric-bar vascular">
+                  <div
+                    id="vascularBar"
+                    style="width:20%"
+                  ></div>
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="lab-card scientific-note">
+
+              <div class="note-icon">
+                i
+              </div>
+
+              <div>
+
+                <strong>
+                  What this simulation does NOT prove
+                </strong>
+
+                <p>
+                  색이 빠지고 조직이 투명해지는 시각적 변화만으로
+                  실제 탈세포화가 완전히 이루어졌다고 판단할 수
+                  없습니다. 실제 연구에서는 DNA, 단백질, 조직학적
+                  분석 등의 추가 검증이 필요합니다.
+                </p>
+
+              </div>
+
+            </div>
+
+
+
             <button
-                class="reset-button"
-                onclick="resetExperiment()"
+              id="startDecellularization"
+              class="primary-button"
+              type="button"
             >
-                RESET EXPERIMENT
+              <span>Start Decellularization Model</span>
+              <b>▶</b>
             </button>
 
-        </aside>
 
-
-        <!-- =========================
-             CONTENT
-        ========================== -->
-
-        <main class="content">
-
-
-            <!-- ==================================
-                 STEP 1
-            =================================== -->
-
-            <section
-                id="step-1"
-                class="experiment-step active"
+            <button
+              id="continueToFlow"
+              class="secondary-button hidden"
+              type="button"
             >
+              Continue to Vascular Flow →
+            </button>
 
-                <div class="step-header">
+          </div>
 
-                    <div>
+        </div>
 
-                        <div class="step-number">
-                            STEP 01
-                        </div>
+      </section>
 
-                        <h2>
-                            Sample Preparation
-                        </h2>
 
-                        <p>
-                            Observe the spinach leaf and its native vascular network before treatment.
-                        </p>
 
-                    </div>
+      <!-- ===================================================
+           STEP 3
+      ==================================================== -->
+      <section
+        id="step3"
+        class="step-panel"
+      >
 
-                    <div class="ready-badge">
-                        READY
-                    </div>
+        <div class="section-header">
+
+          <div>
+
+            <div class="section-kicker">
+              STAGE 03
+            </div>
+
+            <h2>
+              Vascular Flow Simulation
+            </h2>
+
+            <p>
+              탈세포화 후 남은 것으로 모델링한 관다발 네트워크를
+              따라 염료 tracer가 이동하는 상황을 시뮬레이션합니다.
+            </p>
+
+          </div>
+
+          <div class="stage-badge">
+            FLOW MODEL
+          </div>
+
+        </div>
+
+
+
+        <div class="stage-grid flow-grid">
+
+          <div class="lab-card flow-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">FLOW VIEWPORT</span>
+                <h3>Tracer Transport</h3>
+              </div>
+
+              <span
+                id="flowStatus"
+                class="state-indicator"
+              >
+                <i></i>
+                READY
+              </span>
+
+            </div>
+
+
+            <div class="flow-viewport">
+
+              <div class="viewport-grid"></div>
+
+
+              <svg
+                class="flow-leaf-svg"
+                viewBox="0 0 600 430"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+
+                <defs>
+
+                  <linearGradient
+                    id="flowLeafGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+
+                    <stop
+                      offset="0%"
+                      stop-color="#bbc9c2"
+                    />
+
+                    <stop
+                      offset="100%"
+                      stop-color="#667e76"
+                    />
+
+                  </linearGradient>
+
+
+                  <filter id="flowGlow">
+
+                    <feGaussianBlur
+                      stdDeviation="4"
+                      result="blur"
+                    />
+
+                    <feMerge>
+
+                      <feMergeNode
+                        in="blur"
+                      />
+
+                      <feMergeNode
+                        in="SourceGraphic"
+                      />
+
+                    </feMerge>
+
+                  </filter>
+
+                </defs>
+
+
+                <!-- scaffold -->
+                <path
+                  d="M120 360
+                     C55 315 42 215 90 125
+                     C142 28 280 18 405 62
+                     C508 98 566 180 528 273
+                     C490 366 353 414 240 397
+                     C185 389 148 376 120 360Z"
+                  fill="url(#flowLeafGradient)"
+                  opacity=".92"
+                />
+
+
+                <!-- network -->
+                <g
+                  id="flowNetwork"
+                  fill="none"
+                  stroke="#dcebe0"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+
+                  <path
+                    class="flow-vein main-flow-vein"
+                    d="M92 334 C190 302 285 254 500 114"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M165 307 C145 260 138 212 145 145"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M205 289 C190 238 195 181 215 116"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M245 270 C235 220 247 164 270 100"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M285 245 C285 194 302 145 330 90"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M330 215 C340 170 360 130 395 94"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M375 185 C390 150 418 122 450 112"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M145 302 C108 274 92 235 94 190"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M190 285 C150 270 119 242 105 210"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M235 265 C200 250 165 230 145 202"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M280 240 C245 225 210 208 185 180"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M325 215 C292 202 260 185 235 155"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M365 190 C335 175 310 150 290 125"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M410 160 C385 145 365 125 350 105"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M220 286 C245 310 280 325 325 330"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M285 245 C320 270 350 282 390 280"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M340 210 C370 230 400 240 435 235"
+                  />
+
+                  <path
+                    class="flow-vein"
+                    d="M390 175 C420 190 448 194 475 187"
+                  />
+
+                </g>
+
+
+                <!-- animated tracer particles -->
+                <g id="flowParticles">
+
+                  <circle
+                    class="flow-particle particle-1"
+                    cx="100"
+                    cy="330"
+                    r="5"
+                  />
+
+                  <circle
+                    class="flow-particle particle-2"
+                    cx="100"
+                    cy="330"
+                    r="4"
+                  />
+
+                  <circle
+                    class="flow-particle particle-3"
+                    cx="100"
+                    cy="330"
+                    r="4"
+                  />
+
+                  <circle
+                    class="flow-particle particle-4"
+                    cx="100"
+                    cy="330"
+                    r="3"
+                  />
+
+                </g>
+
+              </svg>
+
+
+              <div class="flow-start-point">
+                <span></span>
+                TRACER INPUT
+              </div>
+
+
+              <div class="flow-legend">
+
+                <div>
+                  <span class="flow-legend-dot"></span>
+                  Dye tracer
+                </div>
+
+                <div>
+                  <span class="flow-legend-line"></span>
+                  Leaf vascular network
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="flow-results">
+
+              <div class="flow-result">
+
+                <span>Travel distance</span>
+
+                <strong>
+                  <span id="distanceValue">0</span>
+                  <small>model units</small>
+                </strong>
+
+              </div>
+
+
+              <div class="flow-result">
+
+                <span>Model velocity</span>
+
+                <strong>
+                  <span id="velocityValue">0</span>
+                  <small>units/time</small>
+                </strong>
+
+              </div>
+
+
+              <div class="flow-result">
+
+                <span>Network coverage</span>
+
+                <strong>
+                  <span id="coverageValue">0</span>
+                  <small>%</small>
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="right-column">
+
+            <div class="lab-card controls-card">
+
+              <div class="card-header">
+
+                <div>
+                  <span class="card-label">SIMULATION CONTROLS</span>
+                  <h3>Tracer Parameters</h3>
+                </div>
+
+              </div>
+
+
+              <div class="control-group">
+
+                <div class="control-heading">
+
+                  <label for="dyeRange">
+                    Dye tracer intensity
+                  </label>
+
+                  <output id="dyeValue">
+                    60%
+                  </output>
 
                 </div>
 
 
-                <div class="sample-grid">
+                <input
+                  id="dyeRange"
+                  type="range"
+                  min="20"
+                  max="100"
+                  value="60"
+                />
+
+                <div class="range-labels">
+                  <span>LOW</span>
+                  <span>HIGH</span>
+                </div>
+
+              </div>
 
 
-                    <!-- LEAF VIEW -->
 
-                    <div class="panel leaf-panel">
+              <div class="control-group">
 
-                        <div class="panel-top">
+                <div class="control-heading">
 
-                            <span>
-                                LIVE SAMPLE VIEW
-                            </span>
+                  <label for="timeRange">
+                    Observation time
+                  </label>
 
-                            <span>
-                                1×
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            id="leaf-view"
-                            class="leaf-view cellular"
-                        >
-
-                            <div class="leaf">
-
-                                <div class="leaf-stem"></div>
-
-                                <div class="main-vein"></div>
-
-                                <div class="side-vein vein-1"></div>
-                                <div class="side-vein vein-2"></div>
-                                <div class="side-vein vein-3"></div>
-                                <div class="side-vein vein-4"></div>
-                                <div class="side-vein vein-5"></div>
-                                <div class="side-vein vein-6"></div>
-
-                                <div class="micro-vein micro-1"></div>
-                                <div class="micro-vein micro-2"></div>
-                                <div class="micro-vein micro-3"></div>
-                                <div class="micro-vein micro-4"></div>
-
-                            </div>
-
-
-                            <div
-                                id="flow-particles"
-                                class="flow-particles"
-                            ></div>
-
-                        </div>
-
-
-                        <div class="view-caption">
-
-                            <span>
-                                Cellular tissue
-                            </span>
-
-                            <span>
-                                Native vein structure
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- SAMPLE INFORMATION -->
-
-                    <div class="panel information-panel">
-
-                        <h3>
-                            Sample Information
-                        </h3>
-
-
-                        <div class="info-row">
-
-                            <span>
-                                Sample
-                            </span>
-
-                            <strong>
-                                Spinach Leaf
-                            </strong>
-
-                        </div>
-
-
-                        <div class="info-row">
-
-                            <span>
-                                Initial State
-                            </span>
-
-                            <strong id="initial-state">
-                                Cellular
-                            </strong>
-
-                        </div>
-
-
-                        <div class="info-row">
-
-                            <span>
-                                Vascular Network
-                            </span>
-
-                            <strong>
-                                Detected
-                            </strong>
-
-                        </div>
-
-
-                        <div class="info-row">
-
-                            <span>
-                                Estimated Branches
-                            </span>
-
-                            <strong>
-                                18
-                            </strong>
-
-                        </div>
-
-
-                        <div class="science-warning">
-
-                            <div class="warning-title">
-                                MODEL NOTE
-                            </div>
-
-                            <p>
-                                The leaf vascular network is a plant transport
-                                structure. It is used here as a structural
-                                model and is not equivalent to human blood
-                                vessels.
-                            </p>
-
-                        </div>
-
-
-                        <button
-                            class="primary-button"
-                            onclick="beginExperiment()"
-                        >
-                            BEGIN EXPERIMENT
-                        </button>
-
-                    </div>
+                  <output id="timeValue">
+                    10
+                  </output>
 
                 </div>
 
-            </section>
+
+                <input
+                  id="timeRange"
+                  type="range"
+                  min="2"
+                  max="30"
+                  value="10"
+                />
+
+                <div class="range-labels">
+                  <span>2</span>
+                  <span>30</span>
+                </div>
+
+              </div>
+
+
+              <div class="model-equation">
+
+                <span>MODEL RELATION</span>
+
+                <strong>
+                  v<sub>model</sub> =
+                  d<sub>model</sub> /
+                  t<sub>obs</sub>
+                </strong>
+
+                <small>
+                  This is a simulation relationship,
+                  not an experimentally measured biological constant.
+                </small>
+
+              </div>
+
+
+              <button
+                id="startFlow"
+                class="primary-button"
+                type="button"
+              >
+                <span>Start Tracer Flow</span>
+                <b>▶</b>
+              </button>
+
+
+              <button
+                id="stopFlow"
+                class="secondary-button hidden"
+                type="button"
+              >
+                Stop Simulation
+              </button>
+
+            </div>
 
 
 
-            <!-- ==================================
-                 STEP 2
-            =================================== -->
+            <div class="lab-card scientific-note">
 
-            <section
-                id="step-2"
-                class="experiment-step"
+              <div class="note-icon">
+                i
+              </div>
+
+              <div>
+
+                <strong>
+                  Important interpretation
+                </strong>
+
+                <p>
+                  실제 시금치 잎에서 관찰되는 액체 이동이 항상
+                  관다발 내부의 이동만을 의미하는 것은 아닙니다.
+                  실제 관류 실험에서는 유체가 조직이나 다른 경로를
+                  통해 이동할 가능성도 고려해야 합니다.
+                </p>
+
+              </div>
+
+            </div>
+
+
+
+            <button
+              id="continueToAnalysis"
+              class="secondary-button hidden"
+              type="button"
             >
+              View Analysis →
+            </button>
 
-                <div class="step-header">
+          </div>
 
-                    <div>
+        </div>
 
-                        <div class="step-number">
-                            STEP 02
-                        </div>
+      </section>
 
-                        <h2>
-                            Decellularization
-                        </h2>
 
-                        <p>
-                            Simulate removal of cellular components while monitoring preservation of the leaf's structural network.
-                        </p>
 
-                    </div>
+      <!-- ===================================================
+           STEP 4
+      ==================================================== -->
+      <section
+        id="step4"
+        class="step-panel"
+      >
 
-                    <div
-                        id="decell-status"
-                        class="status-badge"
-                    >
-                        READY
-                    </div>
+        <div class="section-header">
+
+          <div>
+
+            <div class="section-kicker">
+              STAGE 04
+            </div>
+
+            <h2>
+              Analysis & Conclusion
+            </h2>
+
+            <p>
+              시뮬레이션에서 나타난 변화를 정리하고
+              실험적으로 무엇을 말할 수 있는지 구분합니다.
+            </p>
+
+          </div>
+
+          <div class="stage-badge">
+            RESULT
+          </div>
+
+        </div>
+
+
+
+        <div class="analysis-grid">
+
+          <!-- SUMMARY -->
+          <div class="lab-card result-summary">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">SIMULATION RESULT</span>
+                <h3>Model Summary</h3>
+              </div>
+
+              <div class="result-icon">
+                ✓
+              </div>
+
+            </div>
+
+
+            <div class="result-main">
+
+              <div class="result-title">
+                Vascular architecture
+                remains visible
+              </div>
+
+              <p>
+                모델상 세포 성분이 감소하면서 잎의 전체적인
+                녹색 조직 신호는 약해지고, 관다발 네트워크가
+                상대적으로 뚜렷하게 나타났습니다.
+              </p>
+
+            </div>
+
+
+            <div class="result-metrics">
+
+              <div>
+
+                <span>
+                  STRUCTURAL VISIBILITY
+                </span>
+
+                <strong id="finalVisibility">
+                  0%
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  FLOW COVERAGE
+                </span>
+
+                <strong id="finalCoverage">
+                  0%
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  MODEL VELOCITY
+                </span>
+
+                <strong id="finalVelocity">
+                  0
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- CHART -->
+          <div class="lab-card chart-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">MODEL DATA</span>
+                <h3>Network Coverage</h3>
+              </div>
+
+              <span class="chart-unit">
+                %
+              </span>
+
+            </div>
+
+
+            <div class="chart-container">
+
+              <canvas id="coverageChart"></canvas>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- INTERPRETATION -->
+          <div class="lab-card interpretation-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">SCIENTIFIC INTERPRETATION</span>
+                <h3>What can we conclude?</h3>
+              </div>
+
+            </div>
+
+
+            <div class="interpretation-columns">
+
+              <div class="interpretation-box positive">
+
+                <div class="interpretation-heading">
+                  <span>✓</span>
+                  SUPPORTED BY MODEL
+                </div>
+
+                <ul>
+
+                  <li>
+                    세포 성분 감소에 따른 시각적 변화를
+                    모델링할 수 있다.
+                  </li>
+
+                  <li>
+                    시금치 잎의 branching vascular
+                    architecture가 남아 있는 형태를 표현할 수 있다.
+                  </li>
+
+                  <li>
+                    남은 네트워크를 따라 tracer가 이동하는
+                    상황을 계산적으로 모델링할 수 있다.
+                  </li>
+
+                </ul>
+
+              </div>
+
+
+
+              <div class="interpretation-box caution">
+
+                <div class="interpretation-heading">
+                  <span>!</span>
+                  NOT PROVEN BY MODEL
+                </div>
+
+                <ul>
+
+                  <li>
+                    실제 탈세포화가 완전히 이루어졌다는 것
+                  </li>
+
+                  <li>
+                    인간 혈관과 동일한 기능을 한다는 것
+                  </li>
+
+                  <li>
+                    실제 혈류와 동일한 유체역학적 특성을
+                    가진다는 것
+                  </li>
+
+                  <li>
+                    실제 조직공학 scaffold로서의 임상적 효과
+                  </li>
+
+                </ul>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- LIMITATIONS -->
+          <div class="lab-card limitations-card">
+
+            <div class="card-header">
+
+              <div>
+                <span class="card-label">LIMITATIONS</span>
+                <h3>Scientific Boundaries</h3>
+              </div>
+
+            </div>
+
+
+            <div class="limitations-list">
+
+              <div class="limitation-item">
+
+                <span>01</span>
+
+                <div>
+
+                  <strong>
+                    Simulation ≠ experimental measurement
+                  </strong>
+
+                  <p>
+                    화면의 수치들은 실제 시금치에서 측정한
+                    데이터가 아니라 교육용 모델의 출력값입니다.
+                  </p>
 
                 </div>
 
+              </div>
 
-                <div class="experiment-grid">
 
+              <div class="limitation-item">
 
-                    <!-- LEFT -->
+                <span>02</span>
 
-                    <div class="panel">
+                <div>
 
-                        <div class="panel-title">
-                            DECELLULARIZATION MODEL
-                        </div>
+                  <strong>
+                    Plant vasculature ≠ human vasculature
+                  </strong>
 
-
-                        <div
-                            id="decell-leaf-view"
-                            class="decell-leaf-view"
-                        >
-
-                            <div class="leaf decell-leaf">
-
-                                <div class="leaf-stem"></div>
-
-                                <div class="main-vein"></div>
-
-                                <div class="side-vein vein-1"></div>
-                                <div class="side-vein vein-2"></div>
-                                <div class="side-vein vein-3"></div>
-                                <div class="side-vein vein-4"></div>
-                                <div class="side-vein vein-5"></div>
-                                <div class="side-vein vein-6"></div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="process-status">
-
-                            <div class="process-row">
-
-                                <span>
-                                    Cellular material removal
-                                </span>
-
-                                <strong id="cell-removal-value">
-                                    0%
-                                </strong>
-
-                            </div>
-
-                            <div class="progress-bar">
-
-                                <div
-                                    id="cell-removal-bar"
-                                    class="progress-fill"
-                                    style="width:0%"
-                                ></div>
-
-                            </div>
-
-
-                            <div class="process-row">
-
-                                <span>
-                                    Structural preservation
-                                </span>
-
-                                <strong id="structure-value">
-                                    100%
-                                </strong>
-
-                            </div>
-
-                            <div class="progress-bar">
-
-                                <div
-                                    id="structure-bar"
-                                    class="progress-fill"
-                                    style="width:100%"
-                                ></div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- RIGHT -->
-
-                    <div class="panel control-panel">
-
-                        <div class="panel-title">
-                            TREATMENT CONTROL
-                        </div>
-
-
-                        <div class="control-description">
-
-                            <strong>
-                                Virtual detergent treatment
-                            </strong>
-
-                            <p>
-                                This is an educational simulation of a
-                                decellularization process. It does not provide
-                                a laboratory protocol.
-                            </p>
-
-                        </div>
-
-
-                        <div class="parameter">
-
-                            <div class="parameter-header">
-
-                                <span>
-                                    Treatment progress
-                                </span>
-
-                                <strong id="treatment-progress-text">
-                                    0%
-                                </strong>
-
-                            </div>
-
-                            <input
-                                id="treatment-slider"
-                                type="range"
-                                min="0"
-                                max="100"
-                                value="0"
-                            >
-
-                        </div>
-
-
-                        <div class="parameter">
-
-                            <div class="parameter-header">
-
-                                <span>
-                                    Structural preservation
-                                </span>
-
-                                <strong id="preservation-display">
-                                    100%
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="model-result">
-
-                            <div class="result-label">
-                                MODEL OUTPUT
-                            </div>
-
-                            <div
-                                id="decell-result"
-                                class="result-text"
-                            >
-                                Treatment has not started.
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            id="treatment-button"
-                            class="primary-button"
-                            onclick="startTreatment()"
-                        >
-                            START TREATMENT
-                        </button>
-
-
-                        <button
-                            id="wash-button"
-                            class="secondary-button hidden"
-                            onclick="completeWashing()"
-                        >
-                            WASH SAMPLE
-                        </button>
-
-                    </div>
+                  <p>
+                    시금치의 관다발은 인간의 혈관 및 혈관 내피와
+                    생물학적으로 동일하지 않습니다.
+                  </p>
 
                 </div>
 
-
-                <div class="scientific-note">
-
-                    <strong>
-                        Scientific note
-                    </strong>
-
-                    <span>
-                        Decellularization aims to remove cellular material
-                        while retaining extracellular/structural architecture.
-                        Visual clearing alone cannot prove complete
-                        decellularization.
-                    </span>
-
-                </div>
-
-            </section>
+              </div>
 
 
+              <div class="limitation-item">
 
-            <!-- ==================================
-                 STEP 3
-            =================================== -->
+                <span>03</span>
 
-            <section
-                id="step-3"
-                class="experiment-step"
-            >
+                <div>
 
-                <div class="step-header">
+                  <strong>
+                    Decellularization requires validation
+                  </strong>
 
-                    <div>
-
-                        <div class="step-number">
-                            STEP 03
-                        </div>
-
-                        <h2>
-                            Vascular Flow Simulation
-                        </h2>
-
-                        <p>
-                            Test whether a fluid tracer can be modeled as moving through the preserved leaf network.
-                        </p>
-
-                    </div>
-
-                    <div
-                        id="flow-status"
-                        class="status-badge"
-                    >
-                        READY
-                    </div>
+                  <p>
+                    실제 탈세포화 여부는 시각적 변화만으로
+                    확정할 수 없으며 별도의 생화학적·조직학적
+                    검증이 필요합니다.
+                  </p>
 
                 </div>
 
+              </div>
 
-                <div class="flow-grid">
+            </div>
 
+          </div>
 
-                    <!-- FLOW VIEW -->
 
-                    <div class="panel flow-panel">
 
-                        <div class="panel-top">
+          <!-- FINAL CONCLUSION -->
+          <div class="final-conclusion">
 
-                            <span>
-                                VIRTUAL PERFUSION VIEW
-                            </span>
+            <div class="final-conclusion-icon">
+              SV
+            </div>
 
-                            <span>
-                                LIVE
-                            </span>
+            <div>
 
-                        </div>
+              <span>
+                MODEL CONCLUSION
+              </span>
 
+              <h3>
+                A plant-derived vascular network can be
+                represented as a structural scaffold model.
+              </h3>
 
-                        <div
-                            id="flow-view"
-                            class="flow-view"
-                        >
+              <p>
+                본 시뮬레이션은 시금치 잎에서 세포 성분 감소 후
+                상대적으로 남는 관다발 구조와 그 네트워크를 통한
+                tracer 이동을 가상으로 표현한다. 따라서
+                <strong>“식물 유래 구조를 조직공학용 scaffold의
+                개념적 모델로 탐구할 수 있는가?”</strong>라는
+                질문을 시각적·계산적으로 탐구하는 데 목적이 있다.
+              </p>
 
-                            <div class="leaf flow-leaf">
+            </div>
 
-                                <div class="leaf-stem"></div>
+          </div>
 
-                                <div class="main-vein"></div>
 
-                                <div class="side-vein vein-1"></div>
-                                <div class="side-vein vein-2"></div>
-                                <div class="side-vein vein-3"></div>
-                                <div class="side-vein vein-4"></div>
-                                <div class="side-vein vein-5"></div>
-                                <div class="side-vein vein-6"></div>
+          <button
+            id="restartExperiment"
+            class="secondary-button restart-button"
+            type="button"
+          >
+            ↻ Run Experiment Again
+          </button>
 
-                            </div>
+        </div>
 
+      </section>
 
-                            <div
-                                id="dye-layer"
-                                class="dye-layer"
-                            ></div>
+    </section>
 
-
-                            <div
-                                id="flow-label"
-                                class="flow-label"
-                            >
-                                WAITING FOR INJECTION
-                            </div>
-
-                        </div>
-
-
-                        <div class="flow-legend">
-
-                            <span>
-                                <i class="legend-green"></i>
-                                Preserved structure
-                            </span>
-
-                            <span>
-                                <i class="legend-red"></i>
-                                Virtual tracer
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- FLOW CONTROLS -->
-
-                    <div class="panel control-panel">
-
-                        <div class="panel-title">
-                            FLOW PARAMETERS
-                        </div>
-
-
-                        <div class="parameter">
-
-                            <div class="parameter-header">
-
-                                <span>
-                                    Tracer concentration
-                                </span>
-
-                                <strong id="dye-value">
-                                    50%
-                                </strong>
-
-                            </div>
-
-                            <input
-                                id="dye-slider"
-                                type="range"
-                                min="10"
-                                max="100"
-                                value="50"
-                            >
-
-                        </div>
-
-
-                        <div class="parameter">
-
-                            <div class="parameter-header">
-
-                                <span>
-                                    Observation time
-                                </span>
-
-                                <strong>
-                                    <span id="time-value">30</span>
-                                    s
-                                </strong>
-
-                            </div>
-
-                            <input
-                                id="time-slider"
-                                type="range"
-                                min="10"
-                                max="120"
-                                value="30"
-                            >
-
-                        </div>
-
-
-                        <div class="flow-readout">
-
-                            <div>
-
-                                <span>
-                                    Tracer distance
-                                </span>
-
-                                <strong>
-                                    <span id="distance-value">
-                                        0.0
-                                    </span>
-                                    mm
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <span>
-                                    Model velocity
-                                </span>
-
-                                <strong>
-                                    <span id="velocity-value">
-                                        0.00
-                                    </span>
-                                    mm/s
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <span>
-                                    Network coverage
-                                </span>
-
-                                <strong>
-                                    <span id="coverage-value">
-                                        0
-                                    </span>
-                                    %
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            id="inject-button"
-                            class="primary-button"
-                            onclick="injectDye()"
-                        >
-                            INJECT TRACER
-                        </button>
-
-
-                        <button
-                            id="analysis-button"
-                            class="secondary-button hidden"
-                            onclick="goToAnalysis()"
-                        >
-                            ANALYZE RESULT
-                        </button>
-
-
-                        <div class="flow-warning">
-
-                            <strong>
-                                MODEL LIMITATION
-                            </strong>
-
-                            <p>
-                                The animated tracer represents a simplified
-                                transport model. It is not a measurement of
-                                real blood flow or human vascular function.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- ==================================
-                 STEP 4
-            =================================== -->
-
-            <section
-                id="step-4"
-                class="experiment-step"
-            >
-
-                <div class="step-header">
-
-                    <div>
-
-                        <div class="step-number">
-                            STEP 04
-                        </div>
-
-                        <h2>
-                            Experimental Analysis
-                        </h2>
-
-                        <p>
-                            Interpret the simulated observations and distinguish visual evidence from validated measurements.
-                        </p>
-
-                    </div>
-
-                    <div class="analysis-badge">
-                        SIMULATED RESULT
-                    </div>
-
-                </div>
-
-
-                <!-- METRICS -->
-
-                <div class="metrics-grid">
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            CELLULAR REMOVAL
-                        </span>
-
-                        <strong id="metric-removal">
-                            0%
-                        </strong>
-
-                        <small>
-                            model estimate
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            STRUCTURE PRESERVATION
-                        </span>
-
-                        <strong id="metric-preservation">
-                            100%
-                        </strong>
-
-                        <small>
-                            model estimate
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            TRACER COVERAGE
-                        </span>
-
-                        <strong id="metric-coverage">
-                            0%
-                        </strong>
-
-                        <small>
-                            simulated network coverage
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            MODEL VELOCITY
-                        </span>
-
-                        <strong>
-
-                            <span id="metric-velocity">
-                                0.00
-                            </span>
-
-                            <small>
-                                mm/s
-                            </small>
-
-                        </strong>
-
-                        <small>
-                            distance ÷ observation time
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- CHART -->
-
-                <div class="panel chart-panel">
-
-                    <div class="panel-title">
-                        TRACER COVERAGE OVER OBSERVATION TIME
-                    </div>
-
-                    <div class="chart-container">
-
-                        <canvas id="flowChart"></canvas>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- INTERPRETATION -->
-
-                <div class="analysis-grid">
-
-
-                    <div class="panel">
-
-                        <div class="panel-title">
-                            OBSERVATION
-                        </div>
-
-                        <div
-                            id="observation-text"
-                            class="analysis-text"
-                        >
-                            No simulation has been completed yet.
-                        </div>
-
-                    </div>
-
-
-                    <div class="panel">
-
-                        <div class="panel-title">
-                            SCIENTIFIC INTERPRETATION
-                        </div>
-
-                        <div
-                            id="interpretation-text"
-                            class="analysis-text"
-                        >
-                            Complete the simulated experiment to generate
-                            an interpretation.
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- FINAL RESULT -->
-
-                <div class="final-result">
-
-                    <div class="final-icon">
-                        ✓
-                    </div>
-
-                    <div>
-
-                        <div class="final-title">
-                            EXPERIMENT COMPLETE
-                        </div>
-
-                        <p id="final-summary">
-                            Complete all simulated stages to obtain the final
-                            interpretation.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="important-note">
-
-                    <strong>
-                        IMPORTANT
-                    </strong>
-
-                    <p>
-                        This program is an educational simulation.
-                        Its numerical outputs are model-generated values,
-                        not measurements obtained from an actual spinach leaf.
-                        Complete decellularization requires experimental
-                        validation such as DNA/protein quantification or
-                        histological analysis.
-                    </p>
-
-                </div>
-
-            </section>
-
-
-        </main>
-
-    </div>
+  </main>
 
 </div>
 
