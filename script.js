@@ -1,168 +1,135 @@
 /* ============================================================
    SPINACH VASCULAR LAB
-   Main Interface
+   Simulation Engine
 ============================================================ */
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    margin: 0;
-    padding: 0;
-    background: #080c0f;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-
-    background:
-        radial-gradient(
-            circle at 50% -20%,
-            rgba(74, 135, 101, 0.08),
-            transparent 45%
-        ),
-        #080c0f;
-
-    color: #e8eeee;
-
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-}
 
 
 /* ============================================================
-   APP
+   STATE
 ============================================================ */
 
-.app {
-    min-height: 100vh;
-}
+const experiment = {
+
+    mode: "guided",
+
+    step: 1,
+
+    decellularization: {
+
+        efficiency: 70,
+
+        preservation: 0,
+
+        completed: false
+
+    },
+
+    flow: {
+
+        concentration: 50,
+
+        time: 30,
+
+        distance: 0,
+
+        velocity: 0,
+
+        coverage: 0,
+
+        completed: false
+
+    }
+
+};
+
+
+let decellTimer = null;
+let flowTimer = null;
+let chart = null;
 
 
 /* ============================================================
-   HEADER
+   ELEMENTS
 ============================================================ */
 
-.topbar {
+const stepSections = {
 
-    height: 96px;
+    1: document.getElementById("step1"),
+    2: document.getElementById("step2"),
+    3: document.getElementById("step3"),
+    4: document.getElementById("step4")
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 42px;
-
-    background: rgba(12, 18, 21, 0.96);
-
-    border-bottom:
-        1px solid #202a2e;
-}
+};
 
 
-.brand {
-
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
-}
+const sidebarSteps =
+    document.querySelectorAll(".step");
 
 
-.brand-mark {
+/* ============================================================
+   STEP NAVIGATION
+============================================================ */
 
-    width: 42px;
-    height: 42px;
+function showStep(number) {
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    experiment.step = number;
 
-    font-size: 25px;
 
-    border-radius: 10px;
+    Object.values(stepSections).forEach(section => {
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(47, 117, 83, 0.35),
-            rgba(18, 32, 27, 0.9)
+        section.classList.remove(
+            "active-section"
         );
 
-    border: 1px solid #263a31;
-}
+    });
 
 
-.brand h1 {
+    if (stepSections[number]) {
 
-    margin: 0;
+        stepSections[number]
+            .classList.add("active-section");
 
-    font-size: 21px;
-
-    font-weight: 650;
-
-    letter-spacing: -0.3px;
-}
+    }
 
 
-.brand p {
+    sidebarSteps.forEach(button => {
 
-    margin: 5px 0 0;
-
-    color: #718087;
-
-    font-size: 12px;
-
-    letter-spacing: 0.2px;
-}
+        const step =
+            Number(button.dataset.step);
 
 
-.system-status {
-
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-
-    color: #758188;
-
-    font-size: 11px;
-
-    letter-spacing: 1.5px;
-}
+        button.classList.remove(
+            "active",
+            "completed"
+        );
 
 
-.online-dot {
+        if (step === number) {
 
-    width: 8px;
-    height: 8px;
+            button.classList.add("active");
 
-    border-radius: 50%;
-
-    background: #69d69a;
-
-    box-shadow:
-        0 0 10px rgba(105, 214, 154, 0.7);
-}
+        }
 
 
-/* ============================================================
-   BODY
-============================================================ */
+        if (step < number) {
 
-.app-body {
+            button.classList.add(
+                "completed"
+            );
 
-    display: flex;
+        }
 
-    min-height:
-        calc(100vh - 96px);
+    });
+
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
 }
 
 
@@ -170,1402 +137,1058 @@ body {
    SIDEBAR
 ============================================================ */
 
-.sidebar {
+sidebarSteps.forEach(button => {
 
-    width: 250px;
+    button.addEventListener(
+        "click",
+        () => {
 
-    flex-shrink: 0;
+            const target =
+                Number(button.dataset.step);
 
-    display: flex;
-    flex-direction: column;
 
-    padding: 38px 22px 24px;
+            /* Guided Mode */
 
-    background: #0c1215;
+            if (
+                experiment.mode === "guided"
+            ) {
 
-    border-right:
-        1px solid #202a2e;
-}
+                if (target === 1) {
 
+                    showStep(1);
 
-.sidebar-title {
+                    return;
 
-    margin:
-        0 14px 18px;
+                }
 
-    color: #68767d;
 
-    font-size: 11px;
+                if (
+                    target === 2
+                ) {
 
-    letter-spacing: 2px;
+                    showStep(2);
 
-    font-weight: 600;
-}
+                    return;
 
+                }
 
-.steps {
 
-    display: flex;
+                if (
+                    target === 3 &&
+                    experiment.decellularization.completed
+                ) {
 
-    flex-direction: column;
+                    showStep(3);
 
-    gap: 7px;
-}
+                    return;
 
+                }
 
-.step {
 
-    width: 100%;
+                if (
+                    target === 4 &&
+                    experiment.flow.completed
+                ) {
 
-    min-height: 50px;
+                    showStep(4);
 
-    border: 0;
+                    return;
 
-    border-radius: 9px;
+                }
 
-    background: transparent;
 
-    color: #6f7b81;
+                return;
 
-    display: flex;
+            }
 
-    align-items: center;
 
-    gap: 14px;
+            /* Free Mode */
 
-    padding: 0 15px;
+            showStep(target);
 
-    font-size: 14px;
+        }
+    );
 
-    cursor: pointer;
-
-    text-align: left;
-
-    transition:
-        background 0.2s ease,
-        color 0.2s ease;
-}
-
-
-.step:hover {
-
-    background: #121b1e;
-
-    color: #b8c4c8;
-}
-
-
-.step.active {
-
-    color: #dce8e3;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(67, 120, 91, 0.18),
-            rgba(40, 75, 59, 0.14)
-        );
-
-    box-shadow:
-        inset 2px 0 0 #69c991;
-}
-
-
-.step.completed {
-
-    color: #83b69a;
-}
-
-
-.step-number {
-
-    width: 19px;
-
-    color: #607077;
-
-    font-size: 12px;
-}
-
-
-.step.active .step-number {
-
-    color: #69c991;
-}
-
-
-.sidebar-bottom {
-
-    margin-top: auto;
-
-    padding-top: 30px;
-}
-
-
-.sample-id-label {
-
-    color: #68767d;
-
-    font-size: 10px;
-
-    letter-spacing: 1.7px;
-}
-
-
-.sample-id {
-
-    margin-top: 9px;
-
-    color: #cbd5d8;
-
-    font-size: 14px;
-
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        monospace;
-}
-
-
-.reset-button {
-
-    width: 100%;
-
-    margin-top: 25px;
-
-    height: 38px;
-
-    border-radius: 6px;
-
-    border: 1px solid #263239;
-
-    background: transparent;
-
-    color: #68767d;
-
-    font-size: 10px;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
-
-    transition: 0.2s;
-}
-
-
-.reset-button:hover {
-
-    color: #b8c2c5;
-
-    border-color: #435158;
-
-    background: #12191d;
-}
+});
 
 
 /* ============================================================
-   MAIN
+   EXPERIMENT MODE
 ============================================================ */
 
-.main {
-
-    flex: 1;
-
-    min-width: 0;
-
-    padding:
-        54px
-        clamp(28px, 5vw, 82px)
-        70px;
-}
+const guidedButton =
+    document.getElementById(
+        "guided-mode"
+    );
 
 
-.step-section {
-
-    display: none;
-
-    max-width: 1180px;
-
-    margin: 0 auto;
-}
+const freeButton =
+    document.getElementById(
+        "free-mode"
+    );
 
 
-.step-section.active-section {
+guidedButton.addEventListener(
+    "click",
+    () => {
 
-    display: block;
-
-    animation:
-        sectionAppear 0.35s ease;
-}
+        experiment.mode =
+            "guided";
 
 
-@keyframes sectionAppear {
+        guidedButton.classList.add(
+            "selected"
+        );
 
-    from {
-        opacity: 0;
-        transform: translateY(7px);
+
+        freeButton.classList.remove(
+            "selected"
+        );
+
+    }
+);
+
+
+freeButton.addEventListener(
+    "click",
+    () => {
+
+        experiment.mode =
+            "free";
+
+
+        freeButton.classList.add(
+            "selected"
+        );
+
+
+        guidedButton.classList.remove(
+            "selected"
+        );
+
+    }
+);
+
+
+/* ============================================================
+   BEGIN EXPERIMENT
+============================================================ */
+
+const beginButton =
+    document.getElementById(
+        "begin-experiment"
+    );
+
+
+beginButton.addEventListener(
+    "click",
+    () => {
+
+        showStep(2);
+
+        document.getElementById(
+            "decell-status"
+        ).textContent = "READY";
+
+    }
+);
+
+
+/* ============================================================
+   DECELLULARIZATION SLIDER
+============================================================ */
+
+const decellSlider =
+    document.getElementById(
+        "decell-slider"
+    );
+
+
+const decellValue =
+    document.getElementById(
+        "decell-value"
+    );
+
+
+decellSlider.addEventListener(
+    "input",
+    () => {
+
+        experiment
+            .decellularization
+            .efficiency =
+            Number(decellSlider.value);
+
+
+        decellValue.textContent =
+            `${decellSlider.value}%`;
+
+    }
+);
+
+
+/* ============================================================
+   RUN DECELLULARIZATION
+============================================================ */
+
+const runDecellButton =
+    document.getElementById(
+        "run-decellularization"
+    );
+
+
+runDecellButton.addEventListener(
+    "click",
+    runDecellularization
+);
+
+
+function runDecellularization() {
+
+    if (decellTimer) {
+
+        clearInterval(decellTimer);
+
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+
+    const efficiency =
+        experiment
+            .decellularization
+            .efficiency;
 
 
-/* ============================================================
-   HEADINGS
-============================================================ */
-
-.section-heading {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: flex-start;
-
-    gap: 30px;
-
-    margin-bottom: 42px;
-}
-
-
-.eyebrow {
-
-    color: #62c88f;
-
-    font-size: 11px;
-
-    letter-spacing: 3px;
-
-    font-weight: 650;
-
-    margin-bottom: 10px;
-}
-
-
-.section-heading h2 {
-
-    margin: 0;
-
-    font-size: clamp(30px, 3vw, 43px);
-
-    line-height: 1.08;
-
-    letter-spacing: -1.4px;
-
-    font-weight: 650;
-
-    color: #edf2f2;
-}
-
-
-.section-heading p {
-
-    max-width: 650px;
-
-    margin: 12px 0 0;
-
-    color: #738087;
-
-    font-size: 15px;
-
-    line-height: 1.6;
-}
-
-
-.ready-badge,
-.process-badge,
-.complete-badge {
-
-    padding: 9px 14px;
-
-    border-radius: 7px;
-
-    font-size: 10px;
-
-    letter-spacing: 1.5px;
-
-    white-space: nowrap;
-}
-
-
-.ready-badge {
-
-    color: #68ce94;
-
-    border: 1px solid #294335;
-}
-
-
-.process-badge {
-
-    color: #9ba8ad;
-
-    border: 1px solid #293338;
-}
-
-
-.complete-badge {
-
-    color: #69d39a;
-
-    border: 1px solid #31533f;
-
-    background: rgba(59, 117, 83, 0.08);
-}
-
-
-/* ============================================================
-   GRID
-============================================================ */
-
-.sample-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1.6fr)
-        minmax(310px, 0.8fr);
-
-    gap: 28px;
-}
-
-
-/* ============================================================
-   PANELS
-============================================================ */
-
-.panel {
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(18, 26, 29, 0.98),
-            rgba(13, 19, 22, 0.98)
+    const leaf =
+        document.getElementById(
+            "decell-leaf"
         );
 
-    border:
-        1px solid #253137;
 
-    border-radius: 12px;
-
-    box-shadow:
-        0 18px 50px rgba(0, 0, 0, 0.15);
-
-    overflow: hidden;
-}
-
-
-/* ============================================================
-   PANEL HEADER
-============================================================ */
-
-.panel-top {
-
-    height: 49px;
-
-    padding: 0 20px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    border-bottom:
-        1px solid #202a2e;
-
-    color: #66757b;
-
-    font-size: 10px;
-
-    letter-spacing: 1.7px;
-}
-
-
-/* ============================================================
-   SAMPLE VIEW
-============================================================ */
-
-.sample-stage {
-
-    position: relative;
-
-    height: 570px;
-
-    min-height: 450px;
-
-    overflow: hidden;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background:
-
-        radial-gradient(
-            ellipse at center,
-            rgba(45, 76, 58, 0.16),
-            transparent 58%
-        ),
-
-        #0a1013;
-}
-
-
-/* subtle grid */
-
-.sample-stage::before {
-
-    content: "";
-
-    position: absolute;
-
-    inset: 0;
-
-    opacity: 0.16;
-
-    background-image:
-        linear-gradient(
-            rgba(120, 150, 140, 0.04) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(120, 150, 140, 0.04) 1px,
-            transparent 1px
+    const progressBar =
+        document.getElementById(
+            "decell-progress"
         );
 
-    background-size: 45px 45px;
 
-    pointer-events: none;
-}
-
-
-/* ============================================================
-   SPINACH LEAF
-============================================================ */
-
-.leaf {
-
-    position: relative;
-
-    width: min(73%, 520px);
-
-    aspect-ratio: 1.34 / 1;
-
-    transform:
-        rotate(-18deg);
-
-    border-radius:
-        70% 32% 70% 34% /
-        55% 40% 65% 45%;
-
-    background:
-
-        radial-gradient(
-            ellipse at 45% 38%,
-            #61966b 0%,
-            #356848 34%,
-            #183b2b 68%,
-            #10291f 100%
+    const progressText =
+        document.getElementById(
+            "decell-progress-text"
         );
 
-    box-shadow:
 
-        inset 18px 15px 45px rgba(139, 194, 137, 0.18),
-
-        inset -25px -20px 50px rgba(0, 0, 0, 0.38),
-
-        0 35px 70px rgba(0, 0, 0, 0.35);
-
-    transition:
-        filter 0.4s ease,
-        opacity 0.4s ease;
-}
-
-
-/* leaf highlight */
-
-.leaf::before {
-
-    content: "";
-
-    position: absolute;
-
-    inset: 13% 16%;
-
-    border-radius: inherit;
-
-    background:
-        radial-gradient(
-            ellipse at 40% 35%,
-            rgba(165, 215, 157, 0.2),
-            transparent 50%
+    const status =
+        document.getElementById(
+            "decell-status"
         );
 
-    pointer-events: none;
-}
 
-
-/* ============================================================
-   VEINS
-============================================================ */
-
-.main-vein {
-
-    position: absolute;
-
-    left: 9%;
-    top: 48%;
-
-    width: 82%;
-
-    height: 5px;
-
-    border-radius: 100px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(214, 235, 191, 0.9),
-            rgba(164, 201, 156, 0.72),
-            rgba(120, 164, 126, 0.25)
+    const overlay =
+        document.getElementById(
+            "decell-overlay"
         );
 
-    box-shadow:
-        0 0 9px rgba(190, 224, 175, 0.2);
 
-    z-index: 3;
-}
-
-
-.branch {
-
-    position: absolute;
-
-    width: 2px;
-
-    height: 31%;
-
-    left: 40%;
-
-    top: 18%;
-
-    transform-origin: bottom center;
-
-    border-radius: 20px;
-
-    background:
-        linear-gradient(
-            to top,
-            rgba(204, 229, 183, 0.75),
-            rgba(135, 176, 134, 0.15)
+    const result =
+        document.getElementById(
+            "decell-result"
         );
 
-    z-index: 2;
-}
 
+    runDecellButton.disabled = true;
 
-.branch-a {
-    left: 27%;
-    transform: rotate(29deg);
-}
+    runDecellButton.textContent =
+        "PROCESSING...";
 
-.branch-b {
-    left: 38%;
-    height: 38%;
-    transform: rotate(43deg);
-}
 
-.branch-c {
-    left: 49%;
-    height: 35%;
-    transform: rotate(28deg);
-}
+    status.textContent =
+        "PROCESSING";
 
-.branch-d {
-    left: 61%;
-    height: 31%;
-    transform: rotate(42deg);
-}
 
-.branch-e {
-    left: 72%;
-    height: 27%;
-    transform: rotate(35deg);
-}
+    overlay.textContent =
+        "CELLULAR REMOVAL";
 
-.branch-f {
-    left: 32%;
-    top: 49%;
-    height: 30%;
-    transform: rotate(-45deg);
-}
 
-.branch-g {
-    left: 50%;
-    top: 49%;
-    height: 28%;
-    transform: rotate(-34deg);
-}
+    let progress = 0;
 
-.branch-h {
-    left: 66%;
-    top: 49%;
-    height: 25%;
-    transform: rotate(-43deg);
-}
 
+    decellTimer =
+        setInterval(
+            () => {
 
-/* ============================================================
-   STAGE LABEL
-============================================================ */
+                progress += 1;
 
-.stage-label {
 
-    position: absolute;
+                progressBar.style.width =
+                    `${progress}%`;
 
-    left: 20px;
-    bottom: 18px;
 
-    color: #536268;
+                progressText.textContent =
+                    `${progress}%`;
 
-    font-size: 9px;
 
-    letter-spacing: 1.3px;
+                /*
+                 * Higher efficiency =
+                 * stronger loss of green tissue
+                 */
 
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        monospace;
-}
+                const tissueRemoval =
+                    (
+                        progress / 100
+                    ) *
+                    (
+                        efficiency / 100
+                    );
 
 
-/* ============================================================
-   INFORMATION PANEL
-============================================================ */
+                const saturation =
+                    Math.max(
+                        0.12,
+                        1 -
+                        tissueRemoval * 0.9
+                    );
 
-.information-panel,
-.control-panel {
 
-    padding: 31px;
-}
+                const brightness =
+                    1 +
+                    tissueRemoval * 0.18;
 
 
-.information-panel h3,
-.control-panel h3 {
+                if (leaf) {
 
-    margin: 0 0 30px;
+                    leaf.style.filter =
+                        `
+                        saturate(${saturation})
+                        brightness(${brightness})
+                        `;
+                }
 
-    font-size: 19px;
 
-    font-weight: 600;
-}
+                if (progress >= 100) {
 
+                    clearInterval(
+                        decellTimer
+                    );
 
-/* ============================================================
-   INFO LIST
-============================================================ */
+                    finishDecellularization();
 
-.info-list {
+                }
 
-    margin-bottom: 27px;
-}
+            },
 
-
-.info-row {
-
-    min-height: 55px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    border-bottom:
-        1px solid #222d31;
-
-    color: #68777d;
-
-    font-size: 13px;
-}
-
-
-.info-row strong {
-
-    color: #ccd4d6;
-
-    font-weight: 500;
-
-    text-align: right;
-}
-
-
-.info-row .positive {
-
-    color: #70c997;
-}
-
-
-/* ============================================================
-   MODE
-============================================================ */
-
-.mode-box {
-
-    margin:
-        22px 0 25px;
-}
-
-
-.mode-title {
-
-    margin-bottom: 10px;
-
-    color: #627077;
-
-    font-size: 10px;
-
-    letter-spacing: 1.5px;
-}
-
-
-.mode-options {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-}
-
-
-.mode-button {
-
-    padding: 13px 14px;
-
-    border-radius: 8px;
-
-    border: 1px solid #263237;
-
-    background: #0c1316;
-
-    color: #829096;
-
-    text-align: left;
-
-    cursor: pointer;
-
-    transition: 0.2s;
-}
-
-
-.mode-button:hover {
-
-    border-color: #3c5147;
-}
-
-
-.mode-button.selected {
-
-    border-color: #3b7756;
-
-    background:
-        rgba(57, 111, 79, 0.13);
-
-    color: #d4dfda;
-}
-
-
-.mode-button strong {
-
-    display: block;
-
-    margin-bottom: 4px;
-
-    font-size: 12px;
-}
-
-
-.mode-button span {
-
-    font-size: 10px;
-
-    color: #627077;
-}
-
-
-/* ============================================================
-   BUTTONS
-============================================================ */
-
-.primary-button {
-
-    width: 100%;
-
-    height: 52px;
-
-    border: 1px solid #5bc48a;
-
-    border-radius: 8px;
-
-    background:
-        linear-gradient(
-            180deg,
-            #397455,
-            #2d6147
+            45
         );
 
-    color: #eaf4ee;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        transform 0.15s,
-        box-shadow 0.2s,
-        background 0.2s;
 }
 
 
-.primary-button:hover {
+/* ============================================================
+   FINISH DECELLULARIZATION
+============================================================ */
 
-    background:
-        linear-gradient(
-            180deg,
-            #438360,
-            #326e50
+function finishDecellularization() {
+
+    const efficiency =
+        experiment
+            .decellularization
+            .efficiency;
+
+
+    /*
+     * Educational model.
+     *
+     * This is NOT experimental data.
+     */
+
+    const preservation =
+        Math.min(
+            99,
+            Math.round(
+                55 +
+                efficiency * 0.4
+            )
         );
 
-    box-shadow:
-        0 8px 24px rgba(65, 151, 101, 0.14);
-}
 
+    experiment
+        .decellularization
+        .preservation =
+            preservation;
 
-.primary-button:active {
 
-    transform: scale(0.99);
-}
+    experiment
+        .decellularization
+        .completed =
+            true;
 
 
-.primary-button:disabled {
+    document.getElementById(
+        "preservation"
+    ).textContent =
+        `${preservation}%`;
 
-    opacity: 0.5;
 
-    cursor: not-allowed;
+    document.getElementById(
+        "decell-status"
+    ).textContent =
+        "COMPLETE";
 
-    box-shadow: none;
-}
 
+    document.getElementById(
+        "decell-overlay"
+    ).textContent =
+        "DECELLULARIZED";
 
-.secondary-button {
 
-    height: 48px;
+    document.getElementById(
+        "decell-result"
+    ).innerHTML =
 
-    padding: 0 25px;
+        `
+        <strong>
+            Decellularization complete.
+        </strong>
+        <br><br>
+        Simulated cellular removal:
+        ${efficiency}%.
+        <br>
+        Estimated vascular structure preservation:
+        ${preservation}%.
+        `;
 
-    border-radius: 8px;
 
-    border: 1px solid #344047;
+    runDecellButton.disabled = false;
 
-    background: #10171a;
+    runDecellButton.textContent =
+        "RUN AGAIN";
 
-    color: #9aa7ac;
 
-    cursor: pointer;
-}
+    /*
+     * Guided Mode automatically continues.
+     */
 
+    if (
+        experiment.mode === "guided"
+    ) {
 
-/* ============================================================
-   CONTROLS
-============================================================ */
+        setTimeout(
+            () => {
 
-.control-block {
+                showStep(3);
 
-    margin-bottom: 30px;
-}
-
-
-.control-title {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 15px;
-
-    color: #859298;
-
-    font-size: 12px;
-}
-
-
-.control-title strong {
-
-    color: #69cb93;
-
-    font-weight: 600;
-}
-
-
-input[type="range"] {
-
-    width: 100%;
-
-    appearance: none;
-
-    height: 4px;
-
-    border-radius: 10px;
-
-    background: #273237;
-
-    outline: none;
-}
-
-
-input[type="range"]::-webkit-slider-thumb {
-
-    appearance: none;
-
-    width: 17px;
-
-    height: 17px;
-
-    border-radius: 50%;
-
-    background: #69c991;
-
-    border: 3px solid #102018;
-
-    box-shadow:
-        0 0 0 1px #69c991;
-
-    cursor: pointer;
-}
-
-
-input[type="range"]::-moz-range-thumb {
-
-    width: 14px;
-
-    height: 14px;
-
-    border-radius: 50%;
-
-    background: #69c991;
-
-    border: 2px solid #102018;
-
-    cursor: pointer;
-}
-
-
-.range-labels {
-
-    margin-top: 8px;
-
-    display: flex;
-
-    justify-content: space-between;
-
-    color: #526067;
-
-    font-size: 9px;
-
-    letter-spacing: 1px;
-}
-
-
-/* ============================================================
-   PROGRESS
-============================================================ */
-
-.progress-track {
-
-    height: 8px;
-
-    overflow: hidden;
-
-    border-radius: 20px;
-
-    background: #1a2428;
-}
-
-
-.progress-fill {
-
-    width: 0%;
-
-    height: 100%;
-
-    border-radius: inherit;
-
-    background:
-        linear-gradient(
-            90deg,
-            #3c8e62,
-            #71d49d
+            },
+            1000
         );
 
-    transition:
-        width 0.08s linear;
-}
-
-
-/* ============================================================
-   RESULT
-============================================================ */
-
-.result-card {
-
-    margin:
-        10px 0 18px;
-
-    padding: 19px;
-
-    border-radius: 8px;
-
-    border: 1px solid #273337;
-
-    background: #0c1316;
-}
-
-
-.result-card span {
-
-    display: block;
-
-    color: #68767c;
-
-    font-size: 9px;
-
-    letter-spacing: 1.4px;
-}
-
-
-.result-card strong {
-
-    display: block;
-
-    margin-top: 7px;
-
-    color: #d5e3dc;
-
-    font-size: 26px;
-
-    font-weight: 550;
-}
-
-
-.result-message {
-
-    min-height: 75px;
-
-    margin-bottom: 22px;
-
-    padding: 14px;
-
-    border-left:
-        2px solid #355644;
-
-    background: rgba(39, 67, 51, 0.08);
-
-    color: #7e8c91;
-
-    font-size: 11px;
-
-    line-height: 1.65;
-}
-
-
-/* ============================================================
-   PROCESS OVERLAY
-============================================================ */
-
-.process-overlay {
-
-    position: absolute;
-
-    bottom: 20px;
-    right: 20px;
-
-    padding: 7px 10px;
-
-    border-radius: 5px;
-
-    color: #637177;
-
-    background: rgba(8, 13, 15, 0.7);
-
-    border: 1px solid #263136;
-
-    font-size: 9px;
-
-    letter-spacing: 1px;
-}
-
-
-/* ============================================================
-   FLOW
-============================================================ */
-
-.flow-stage {
-
-    position: relative;
-}
-
-
-.flow-stage .leaf {
-
-    transition:
-        filter 0.5s ease;
-}
-
-
-.flow-legend {
-
-    position: absolute;
-
-    right: 20px;
-    bottom: 18px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    color: #657279;
-
-    font-size: 9px;
-
-    letter-spacing: 1px;
-}
-
-
-.legend-dot {
-
-    width: 7px;
-    height: 7px;
-
-    border-radius: 50%;
-
-    background: #e65e6b;
-
-    box-shadow:
-        0 0 8px rgba(230, 94, 107, 0.8);
-}
-
-
-/* ============================================================
-   DYE
-============================================================ */
-
-.dye-path {
-
-    position: absolute;
-
-    width: 9px;
-    height: 9px;
-
-    border-radius: 50%;
-
-    background: #ed5e69;
-
-    box-shadow:
-        0 0 8px rgba(237, 94, 105, 0.9),
-        0 0 18px rgba(237, 94, 105, 0.35);
-
-    z-index: 10;
-
-    animation:
-        dyePulse 0.8s ease-in-out infinite;
-}
-
-
-@keyframes dyePulse {
-
-    0%,
-    100% {
-        transform: scale(0.8);
     }
 
-    50% {
-        transform: scale(1.3);
-    }
-}
-
-
-.vein-dye {
-
-    position: absolute;
-
-    height: 5px;
-
-    border-radius: 10px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(232, 83, 96, 0.2),
-            rgba(236, 91, 103, 0.9),
-            rgba(236, 91, 103, 0.25)
-        );
-
-    box-shadow:
-        0 0 8px rgba(235, 85, 99, 0.45);
-
-    z-index: 4;
-
-    animation:
-        dyeSpread 1.2s ease forwards;
-}
-
-
-@keyframes dyeSpread {
-
-    from {
-        width: 0;
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
 }
 
 
 /* ============================================================
-   TELEMETRY
+   DYE SLIDER
 ============================================================ */
 
-.telemetry-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 9px;
-
-    margin:
-        12px 0 24px;
-}
+const dyeSlider =
+    document.getElementById(
+        "dye-slider"
+    );
 
 
-.telemetry {
-
-    min-height: 82px;
-
-    padding: 14px;
-
-    border:
-        1px solid #253137;
-
-    border-radius: 7px;
-
-    background: #0b1215;
-}
+const dyeValue =
+    document.getElementById(
+        "dye-value"
+    );
 
 
-.telemetry span {
+dyeSlider.addEventListener(
+    "input",
+    () => {
 
-    display: block;
-
-    color: #5d6b71;
-
-    font-size: 8px;
-
-    letter-spacing: 1px;
-}
+        experiment.flow.concentration =
+            Number(dyeSlider.value);
 
 
-.telemetry strong {
+        dyeValue.textContent =
+            `${dyeSlider.value}%`;
 
-    display: block;
+    }
+);
 
-    margin-top: 10px;
 
-    color: #cbd7d3;
+/* ============================================================
+   TIME SLIDER
+============================================================ */
 
-    font-size: 17px;
+const timeSlider =
+    document.getElementById(
+        "time-slider"
+    );
 
-    font-weight: 550;
+
+const timeValue =
+    document.getElementById(
+        "time-value"
+    );
+
+
+timeSlider.addEventListener(
+    "input",
+    () => {
+
+        experiment.flow.time =
+            Number(timeSlider.value);
+
+
+        timeValue.textContent =
+            `${timeSlider.value} s`;
+
+    }
+);
+
+
+/* ============================================================
+   FLOW SIMULATION
+============================================================ */
+
+const injectButton =
+    document.getElementById(
+        "inject-dye"
+    );
+
+
+injectButton.addEventListener(
+    "click",
+    startFlow
+);
+
+
+function startFlow() {
+
+    /*
+     * In Guided Mode, require
+     * decellularization first.
+     */
+
+    if (
+        experiment.mode === "guided" &&
+        !experiment.decellularization.completed
+    ) {
+
+        alert(
+            "Complete decellularization first."
+        );
+
+        showStep(2);
+
+        return;
+
+    }
+
+
+    if (flowTimer) {
+
+        clearInterval(flowTimer);
+
+    }
+
+
+    injectButton.disabled = true;
+
+    injectButton.textContent =
+        "DYE INJECTION...";
+
+
+    document.getElementById(
+        "flow-status"
+    ).textContent =
+        "ACTIVE";
+
+
+    /*
+     * Calculate model output.
+     */
+
+    const concentration =
+        experiment.flow.concentration;
+
+
+    const time =
+        experiment.flow.time;
+
+
+    const preservation =
+        experiment
+            .decellularization
+            .preservation;
+
+
+    /*
+     * Distance:
+     *
+     * More concentration,
+     * longer observation time,
+     * and better preserved network
+     * increase simulated transport.
+     */
+
+    const distance =
+        (
+            3.5 +
+            concentration * 0.075 +
+            time * 0.24
+        ) *
+        (
+            0.75 +
+            preservation / 400
+        );
+
+
+    const velocity =
+        distance /
+        Math.max(time, 1);
+
+
+    const coverage =
+        Math.min(
+            99,
+            Math.round(
+                12 +
+                concentration * 0.38 +
+                time * 0.68 +
+                preservation * 0.12
+            )
+        );
+
+
+    experiment.flow.distance =
+        Number(
+            distance.toFixed(2)
+        );
+
+
+    experiment.flow.velocity =
+        Number(
+            velocity.toFixed(3)
+        );
+
+
+    experiment.flow.coverage =
+        coverage;
+
+
+    animateFlow();
+
 }
 
 
 /* ============================================================
-   ANALYSIS METRICS
+   FLOW ANIMATION
 ============================================================ */
 
-.metrics-grid {
+function animateFlow() {
 
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 15px;
-
-    margin-bottom: 22px;
-}
-
-
-.metric {
-
-    min-height: 125px;
-
-    padding: 20px;
-
-    border-radius: 10px;
-
-    border: 1px solid #263238;
-
-    background:
-        linear-gradient(
-            145deg,
-            #121a1d,
-            #0d1417
+    const leaf =
+        document.getElementById(
+            "flow-leaf"
         );
+
+
+    const stage =
+        document.getElementById(
+            "flow-stage"
+        );
+
+
+    /*
+     * Remove previous dye.
+     */
+
+    document
+        .querySelectorAll(
+            ".dye-path, .vein-dye"
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
+
+
+    /*
+     * Create several dye segments.
+     */
+
+    const segments = [
+
+        {
+            left: "14%",
+            top: "48%",
+            width: "20%"
+        },
+
+        {
+            left: "30%",
+            top: "46%",
+            width: "18%"
+        },
+
+        {
+            left: "45%",
+            top: "44%",
+            width: "17%"
+        },
+
+        {
+            left: "59%",
+            top: "42%",
+            width: "14%"
+        },
+
+        {
+            left: "70%",
+            top: "40%",
+            width: "10%"
+        }
+
+    ];
+
+
+    segments.forEach(
+        (segment, index) => {
+
+            const dye =
+                document.createElement(
+                    "div"
+                );
+
+
+            dye.className =
+                "vein-dye";
+
+
+            dye.style.left =
+                segment.left;
+
+
+            dye.style.top =
+                segment.top;
+
+
+            dye.style.width =
+                "0";
+
+
+            dye.style.transform =
+                "rotate(0deg)";
+
+
+            dye.style.animationDelay =
+                `${index * 0.45}s`;
+
+
+            leaf.appendChild(
+                dye
+            );
+
+
+            setTimeout(
+                () => {
+
+                    dye.style.width =
+                        segment.width;
+
+                },
+
+                index * 450
+            );
+
+        }
+    );
+
+
+    /*
+     * Moving particles
+     */
+
+    const particlePositions = [
+
+        ["12%", "47%"],
+        ["25%", "47%"],
+        ["38%", "45%"],
+        ["51%", "43%"],
+        ["63%", "41%"],
+        ["75%", "39%"]
+
+    ];
+
+
+    particlePositions.forEach(
+        (position, index) => {
+
+            const particle =
+                document.createElement(
+                    "div"
+                );
+
+
+            particle.className =
+                "dye-path";
+
+
+            particle.style.left =
+                position[0];
+
+
+            particle.style.top =
+                position[1];
+
+
+            particle.style.animationDelay =
+                `${index * 0.45}s`;
+
+
+            leaf.appendChild(
+                particle
+            );
+
+        }
+    );
+
+
+    /*
+     * Telemetry animation.
+     */
+
+    let progress = 0;
+
+
+    flowTimer =
+        setInterval(
+            () => {
+
+                progress += 2;
+
+
+                const ratio =
+                    progress / 100;
+
+
+                document.getElementById(
+                    "flow-distance"
+                ).textContent =
+                    `${(
+                        experiment.flow.distance *
+                        ratio
+                    ).toFixed(1)} mm`;
+
+
+                document.getElementById(
+                    "flow-velocity"
+                ).textContent =
+                    `${experiment.flow.velocity.toFixed(2)} mm/s`;
+
+
+                document.getElementById(
+                    "flow-coverage"
+                ).textContent =
+                    `${Math.round(
+                        experiment.flow.coverage *
+                        ratio
+                    )}%`;
+
+
+                if (progress >= 100) {
+
+                    clearInterval(
+                        flowTimer
+                    );
+
+
+                    finishFlow();
+
+                }
+
+            },
+
+            50
+        );
+
 }
 
 
-.metric span {
+/* ============================================================
+   FINISH FLOW
+============================================================ */
 
-    color: #647278;
+function finishFlow() {
 
-    font-size: 9px;
+    experiment.flow.completed =
+        true;
 
-    letter-spacing: 1.2px;
 
-    line-height: 1.5;
+    document.getElementById(
+        "flow-status"
+    ).textContent =
+        "COMPLETE";
+
+
+    injectButton.disabled =
+        false;
+
+
+    injectButton.textContent =
+        "RUN AGAIN";
+
+
+    if (
+        experiment.mode === "guided"
+    ) {
+
+        setTimeout(
+            () => {
+
+                showStep(4);
+
+                updateAnalysis();
+
+            },
+
+            1200
+        );
+
+    }
+
 }
 
 
-.metric strong {
+/* ============================================================
+   ANALYSIS
+============================================================ */
 
-    display: block;
+function updateAnalysis() {
 
-    margin-top: 16px;
+    document.getElementById(
+        "analysis-preservation"
+    ).textContent =
+        `${experiment.decellularization.preservation}%`;
 
-    color: #d9e4e0;
 
-    font-size: 25px;
+    document.getElementById(
+        "analysis-distance"
+    ).textContent =
+        `${experiment.flow.distance.toFixed(1)} mm`;
 
-    font-weight: 550;
+
+    document.getElementById(
+        "analysis-velocity"
+    ).textContent =
+        `${experiment.flow.velocity.toFixed(2)} mm/s`;
+
+
+    document.getElementById(
+        "analysis-coverage"
+    ).textContent =
+        `${experiment.flow.coverage}%`;
+
+
+    /*
+     * Scientific interpretation
+     */
+
+    const preservation =
+        experiment.decellularization.preservation;
+
+
+    const coverage =
+        experiment.flow.coverage;
+
+
+    let interpretation = "";
+
+
+    if (
+        preservation >= 80 &&
+        coverage >= 60
+    ) {
+
+        interpretation =
+
+            `
+            <strong>
+                High structural preservation and broad
+                simulated network coverage were observed.
+            </strong>
+            <br><br>
+
+            The model suggests that the simulated
+            decellularization condition preserved a substantial
+            portion of the spinach leaf's vascular architecture.
+            The simulated dye subsequently reached a relatively
+            large fraction of the network.
+            `;
+
+    }
+
+    else if (
+        preservation >= 65
+    ) {
+
+        interpretation =
+
+            `
+            <strong>
+                Moderate structural preservation was observed.
+            </strong>
+            <br><br>
+
+            The simulated vascular network remained sufficiently
+            preserved for dye transport to occur through multiple
+            branches. Increasing preservation or observation time
+            could increase simulated network coverage.
+            `;
+
+    }
+
+    else {
+
+        interpretation =
+
+            `
+            <strong>
+                Limited structural preservation was observed.
+            </strong>
+            <br><br>
+
+            The model predicts reduced transport through the
+            vascular network when cellular removal is accompanied
+            by greater structural disruption.
+            `;
+
+    }
+
+
+    interpretation +=
+
+        `
+        <br><br>
+
+        <strong>Important limitation:</strong>
+        These values are generated by an educational simulation
+        model and are not measurements from a real laboratory
+        experiment. Spinach leaf veins are structurally different
+        from living human blood vessels, so this model represents
+        branching and fluid-transport concepts rather than a
+        direct human vascular equivalent.
+        `;
+
+
+    document.getElementById(
+        "interpretation-text"
+    ).innerHTML =
+        interpretation;
+
+
+    createChart();
+
 }
 
 
@@ -1573,333 +1196,503 @@ input[type="range"]::-moz-range-thumb {
    CHART
 ============================================================ */
 
-.chart-panel {
+function createChart() {
 
-    margin-bottom: 20px;
-}
+    const canvas =
+        document.getElementById(
+            "flowChart"
+        );
 
 
-.chart-wrapper {
+    if (!canvas) return;
 
-    height: 360px;
 
-    padding: 25px;
+    if (chart) {
+
+        chart.destroy();
+
+    }
+
+
+    const totalTime =
+        experiment.flow.time;
+
+
+    const finalCoverage =
+        experiment.flow.coverage;
+
+
+    const labels = [];
+    const values = [];
+
+
+    for (
+        let i = 0;
+        i <= 6;
+        i++
+    ) {
+
+        const ratio =
+            i / 6;
+
+
+        labels.push(
+            `${Math.round(
+                totalTime * ratio
+            )} s`
+        );
+
+
+        values.push(
+            Math.round(
+                finalCoverage * ratio
+            )
+        );
+
+    }
+
+
+    chart =
+        new Chart(
+            canvas.getContext("2d"),
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Simulated network coverage (%)",
+
+                            data: values,
+
+                            borderColor:
+                                "#69c991",
+
+                            backgroundColor:
+                                "rgba(105, 201, 145, 0.10)",
+
+                            borderWidth: 2,
+
+                            fill: true,
+
+                            tension: 0.35,
+
+                            pointRadius: 3,
+
+                            pointHoverRadius: 5
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+
+                    plugins: {
+
+                        legend: {
+
+                            labels: {
+
+                                color: "#819096",
+
+                                font: {
+
+                                    size: 11
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        x: {
+
+                            ticks: {
+
+                                color: "#637178"
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "rgba(100,120,120,0.08)"
+
+                            }
+
+                        },
+
+
+                        y: {
+
+                            min: 0,
+
+                            max: 100,
+
+                            ticks: {
+
+                                color: "#637178",
+
+                                callback:
+                                    value =>
+                                        `${value}%`
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "rgba(100,120,120,0.08)"
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
 }
 
 
 /* ============================================================
-   INTERPRETATION
+   RESET
 ============================================================ */
 
-.interpretation {
-
-    padding: 25px;
-
-    margin-bottom: 20px;
-
-    color: #849197;
-
-    font-size: 12px;
-
-    line-height: 1.75;
-}
+const resetButton =
+    document.getElementById(
+        "reset-experiment"
+    );
 
 
-.interpretation-title {
-
-    margin-bottom: 12px;
-
-    color: #69c991;
-
-    font-size: 10px;
-
-    letter-spacing: 1.7px;
-
-    font-weight: 650;
-}
+resetButton.addEventListener(
+    "click",
+    resetExperiment
+);
 
 
-.interpretation strong {
+const newExperimentButton =
+    document.getElementById(
+        "new-experiment"
+    );
 
-    color: #cfd9d7;
+
+newExperimentButton.addEventListener(
+    "click",
+    resetExperiment
+);
+
+
+function resetExperiment() {
+
+    /*
+     * Stop timers.
+     */
+
+    if (decellTimer) {
+
+        clearInterval(
+            decellTimer
+        );
+
+    }
+
+
+    if (flowTimer) {
+
+        clearInterval(
+            flowTimer
+        );
+
+    }
+
+
+    decellTimer = null;
+    flowTimer = null;
+
+
+    /*
+     * Reset state.
+     */
+
+    experiment.step = 1;
+
+    experiment.mode = "guided";
+
+
+    experiment.decellularization =
+        {
+
+            efficiency: 70,
+
+            preservation: 0,
+
+            completed: false
+
+        };
+
+
+    experiment.flow =
+        {
+
+            concentration: 50,
+
+            time: 30,
+
+            distance: 0,
+
+            velocity: 0,
+
+            coverage: 0,
+
+            completed: false
+
+        };
+
+
+    /*
+     * Reset controls.
+     */
+
+    decellSlider.value = 70;
+
+    decellValue.textContent =
+        "70%";
+
+
+    dyeSlider.value = 50;
+
+    dyeValue.textContent =
+        "50%";
+
+
+    timeSlider.value = 30;
+
+    timeValue.textContent =
+        "30 s";
+
+
+    /*
+     * Reset leaf.
+     */
+
+    [
+        "decell-leaf",
+        "flow-leaf"
+    ].forEach(
+        id => {
+
+            const leaf =
+                document.getElementById(id);
+
+
+            if (leaf) {
+
+                leaf.style.filter =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    /*
+     * Remove dye.
+     */
+
+    document
+        .querySelectorAll(
+            ".dye-path, .vein-dye"
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
+
+
+    /*
+     * Reset progress.
+     */
+
+    document.getElementById(
+        "decell-progress"
+    ).style.width =
+        "0%";
+
+
+    document.getElementById(
+        "decell-progress-text"
+    ).textContent =
+        "0%";
+
+
+    document.getElementById(
+        "preservation"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "decell-status"
+    ).textContent =
+        "READY";
+
+
+    document.getElementById(
+        "decell-overlay"
+    ).textContent =
+        "CELLULAR TISSUE";
+
+
+    document.getElementById(
+        "decell-result"
+    ).innerHTML =
+        `
+        Adjust the efficiency and run
+        the virtual decellularization process.
+        `;
+
+
+    /*
+     * Reset flow.
+     */
+
+    document.getElementById(
+        "flow-status"
+    ).textContent =
+        "READY";
+
+
+    document.getElementById(
+        "flow-distance"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "flow-velocity"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "flow-coverage"
+    ).textContent =
+        "--";
+
+
+    injectButton.disabled =
+        false;
+
+
+    injectButton.textContent =
+        "Inject Dye";
+
+
+    runDecellButton.disabled =
+        false;
+
+
+    runDecellButton.textContent =
+        "Run Simulation";
+
+
+    /*
+     * Reset mode.
+     */
+
+    guidedButton.classList.add(
+        "selected"
+    );
+
+
+    freeButton.classList.remove(
+        "selected"
+    );
+
+
+    /*
+     * Reset chart.
+     */
+
+    if (chart) {
+
+        chart.destroy();
+
+        chart = null;
+
+    }
+
+
+    /*
+     * Reset analysis.
+     */
+
+    document.getElementById(
+        "analysis-preservation"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "analysis-distance"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "analysis-velocity"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "analysis-coverage"
+    ).textContent =
+        "--";
+
+
+    document.getElementById(
+        "interpretation-text"
+    ).textContent =
+        "Complete the simulation to generate an interpretation of the results.";
+
+
+    /*
+     * Back to Sample.
+     */
+
+    showStep(1);
+
 }
 
 
 /* ============================================================
-   RESPONSIVE
+   INITIALIZE
 ============================================================ */
 
-@media (max-width: 1000px) {
-
-    .sidebar {
-        width: 205px;
-    }
-
-    .main {
-        padding: 40px 30px 60px;
-    }
-
-    .sample-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .sample-stage {
-        height: 470px;
-    }
-
-    .metrics-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-}
-
-
-@media (max-width: 700px) {
-
-    .topbar {
-
-        height: 78px;
-
-        padding: 0 18px;
-    }
-
-    .brand-mark {
-        width: 35px;
-        height: 35px;
-        font-size: 19px;
-    }
-
-    .brand h1 {
-        font-size: 15px;
-    }
-
-    .brand p {
-        font-size: 9px;
-    }
-
-    .system-status {
-        display: none;
-    }
-
-
-    .app-body {
-        display: block;
-    }
-
-
-    .sidebar {
-
-        width: 100%;
-
-        height: auto;
-
-        padding:
-            15px
-            15px
-            12px;
-
-        border-right: 0;
-
-        border-bottom:
-            1px solid #202a2e;
-    }
-
-
-    .sidebar-title {
-        display: none;
-    }
-
-
-    .steps {
-
-        display: grid;
-
-        grid-template-columns:
-            repeat(4, 1fr);
-
-        gap: 5px;
-    }
-
-
-    .step {
-
-        min-height: 43px;
-
-        justify-content: center;
-
-        padding: 5px;
-
-        gap: 5px;
-
-        font-size: 10px;
-
-        flex-direction: column;
-    }
-
-
-    .step-number {
-        width: auto;
-
-        font-size: 9px;
-    }
-
-
-    .sidebar-bottom {
-
-        display: flex;
-
-        align-items: center;
-
-        gap: 10px;
-
-        padding-top: 10px;
-    }
-
-
-    .sample-id-label {
-        display: none;
-    }
-
-
-    .sample-id {
-        margin: 0;
-
-        font-size: 10px;
-    }
-
-
-    .reset-button {
-
-        width: auto;
-
-        margin: 0 0 0 auto;
-
-        height: 30px;
-
-        padding: 0 10px;
-
-        font-size: 8px;
-    }
-
-
-    .main {
-
-        padding:
-            32px
-            16px
-            50px;
-    }
-
-
-    .section-heading {
-
-        margin-bottom: 25px;
-
-        gap: 15px;
-    }
-
-
-    .section-heading h2 {
-        font-size: 28px;
-    }
-
-
-    .section-heading p {
-        font-size: 12px;
-    }
-
-
-    .ready-badge,
-    .process-badge,
-    .complete-badge {
-        padding: 7px 9px;
-
-        font-size: 8px;
-    }
-
-
-    .sample-stage {
-
-        height: 380px;
-
-        min-height: 300px;
-    }
-
-
-    .leaf {
-        width: 75%;
-    }
-
-
-    .information-panel,
-    .control-panel {
-        padding: 22px;
-    }
-
-
-    .metrics-grid {
-
-        grid-template-columns:
-            1fr 1fr;
-    }
-
-
-    .metric {
-
-        min-height: 105px;
-
-        padding: 15px;
-    }
-
-
-    .metric strong {
-        font-size: 20px;
-    }
-
-
-    .telemetry-grid {
-        grid-template-columns:
-            1fr 1fr 1fr;
-    }
-
-
-    .telemetry {
-        padding: 10px;
-    }
-
-
-    .telemetry strong {
-        font-size: 13px;
-    }
-
-
-    .chart-wrapper {
-        height: 280px;
-
-        padding: 15px;
-    }
-}
-
-
-@media (max-width: 430px) {
-
-    .metrics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .sample-stage {
-        height: 320px;
-    }
-
-    .section-heading h2 {
-        font-size: 25px;
-    }
-
-    .telemetry-grid {
-        gap: 5px;
-    }
-
-    .telemetry {
-        min-height: 70px;
-    }
-}
+showStep(1);
