@@ -1,126 +1,100 @@
-/* ============================================================
+/* =========================================
+
    SPINACH VASCULAR LAB
-   Simulation Engine
-============================================================ */
 
+   Educational Simulation
 
-/* ============================================================
-   STATE
-============================================================ */
+========================================= */
+
+/* =========================================
+
+   EXPERIMENT STATE
+
+========================================= */
 
 const experiment = {
 
-    mode: "guided",
+    currentStep: 1,
 
-    step: 1,
+    started: false,
 
-    decellularization: {
+    treatmentStarted: false,
 
-        efficiency: 70,
+    washingCompleted: false,
 
-        preservation: 0,
+    flowStarted: false,
 
-        completed: false
+    analysisReady: false,
 
-    },
+    treatmentProgress: 0,
 
-    flow: {
+    cellularRemoval: 0,
 
-        concentration: 50,
+    structuralPreservation: 100,
 
-        time: 30,
+    tracerConcentration: 50,
 
-        distance: 0,
+    observationTime: 30,
 
-        velocity: 0,
+    tracerDistance: 0,
 
-        coverage: 0,
+    tracerCoverage: 0,
 
-        completed: false
+    modelVelocity: 0,
 
-    }
-
-};
-
-
-let decellTimer = null;
-let flowTimer = null;
-let chart = null;
-
-
-/* ============================================================
-   ELEMENTS
-============================================================ */
-
-const stepSections = {
-
-    1: document.getElementById("step1"),
-    2: document.getElementById("step2"),
-    3: document.getElementById("step3"),
-    4: document.getElementById("step4")
+    chart: null
 
 };
 
+/* =========================================
 
-const sidebarSteps =
-    document.querySelectorAll(".step");
-
-
-/* ============================================================
    STEP NAVIGATION
-============================================================ */
 
-function showStep(number) {
+========================================= */
 
-    experiment.step = number;
+function showStep(step) {
 
+    const sections =
 
-    Object.values(stepSections).forEach(section => {
+        document.querySelectorAll(".experiment-step");
 
-        section.classList.remove(
-            "active-section"
-        );
+    sections.forEach(section => {
+
+        section.classList.remove("active");
 
     });
 
+    const target =
 
-    if (stepSections[number]) {
+        document.getElementById(`step-${step}`);
 
-        stepSections[number]
-            .classList.add("active-section");
+    if (target) {
+
+        target.classList.add("active");
 
     }
 
+    const buttons =
 
-    sidebarSteps.forEach(button => {
+        document.querySelectorAll(".step-button");
 
-        const step =
-            Number(button.dataset.step);
+    buttons.forEach(button => {
 
+        button.classList.remove("active");
 
-        button.classList.remove(
-            "active",
-            "completed"
-        );
+        if (
 
+            Number(button.dataset.step) === step
 
-        if (step === number) {
+        ) {
 
             button.classList.add("active");
 
         }
 
-
-        if (step < number) {
-
-            button.classList.add(
-                "completed"
-            );
-
-        }
-
     });
 
+    experiment.currentStep = step;
 
     window.scrollTo({
 
@@ -132,1129 +106,1088 @@ function showStep(number) {
 
 }
 
+/* =========================================
 
-/* ============================================================
-   SIDEBAR
-============================================================ */
+   STEP 1
 
-sidebarSteps.forEach(button => {
+========================================= */
 
-    button.addEventListener(
-        "click",
-        () => {
+function beginExperiment() {
 
-            const target =
-                Number(button.dataset.step);
+    experiment.started = true;
 
-
-            /* Guided Mode */
-
-            if (
-                experiment.mode === "guided"
-            ) {
-
-                if (target === 1) {
-
-                    showStep(1);
-
-                    return;
-
-                }
-
-
-                if (
-                    target === 2
-                ) {
-
-                    showStep(2);
-
-                    return;
-
-                }
-
-
-                if (
-                    target === 3 &&
-                    experiment.decellularization.completed
-                ) {
-
-                    showStep(3);
-
-                    return;
-
-                }
-
-
-                if (
-                    target === 4 &&
-                    experiment.flow.completed
-                ) {
-
-                    showStep(4);
-
-                    return;
-
-                }
-
-
-                return;
-
-            }
-
-
-            /* Free Mode */
-
-            showStep(target);
-
-        }
-    );
-
-});
-
-
-/* ============================================================
-   EXPERIMENT MODE
-============================================================ */
-
-const guidedButton =
-    document.getElementById(
-        "guided-mode"
-    );
-
-
-const freeButton =
-    document.getElementById(
-        "free-mode"
-    );
-
-
-guidedButton.addEventListener(
-    "click",
-    () => {
-
-        experiment.mode =
-            "guided";
-
-
-        guidedButton.classList.add(
-            "selected"
-        );
-
-
-        freeButton.classList.remove(
-            "selected"
-        );
-
-    }
-);
-
-
-freeButton.addEventListener(
-    "click",
-    () => {
-
-        experiment.mode =
-            "free";
-
-
-        freeButton.classList.add(
-            "selected"
-        );
-
-
-        guidedButton.classList.remove(
-            "selected"
-        );
-
-    }
-);
-
-
-/* ============================================================
-   BEGIN EXPERIMENT
-============================================================ */
-
-const beginButton =
-    document.getElementById(
-        "begin-experiment"
-    );
-
-
-beginButton.addEventListener(
-    "click",
-    () => {
-
-        showStep(2);
-
-        document.getElementById(
-            "decell-status"
-        ).textContent = "READY";
-
-    }
-);
-
-
-/* ============================================================
-   DECELLULARIZATION SLIDER
-============================================================ */
-
-const decellSlider =
-    document.getElementById(
-        "decell-slider"
-    );
-
-
-const decellValue =
-    document.getElementById(
-        "decell-value"
-    );
-
-
-decellSlider.addEventListener(
-    "input",
-    () => {
-
-        experiment
-            .decellularization
-            .efficiency =
-            Number(decellSlider.value);
-
-
-        decellValue.textContent =
-            `${decellSlider.value}%`;
-
-    }
-);
-
-
-/* ============================================================
-   RUN DECELLULARIZATION
-============================================================ */
-
-const runDecellButton =
-    document.getElementById(
-        "run-decellularization"
-    );
-
-
-runDecellButton.addEventListener(
-    "click",
-    runDecellularization
-);
-
-
-function runDecellularization() {
-
-    if (decellTimer) {
-
-        clearInterval(decellTimer);
-
-    }
-
-
-    const efficiency =
-        experiment
-            .decellularization
-            .efficiency;
-
-
-    const leaf =
-        document.getElementById(
-            "decell-leaf"
-        );
-
-
-    const progressBar =
-        document.getElementById(
-            "decell-progress"
-        );
-
-
-    const progressText =
-        document.getElementById(
-            "decell-progress-text"
-        );
-
+    showStep(2);
 
     const status =
-        document.getElementById(
-            "decell-status"
-        );
 
+        document.getElementById("decell-status");
 
-    const overlay =
-        document.getElementById(
-            "decell-overlay"
-        );
+    status.textContent = "READY";
 
-
-    const result =
-        document.getElementById(
-            "decell-result"
-        );
-
-
-    runDecellButton.disabled = true;
-
-    runDecellButton.textContent =
-        "PROCESSING...";
-
-
-    status.textContent =
-        "PROCESSING";
-
-
-    overlay.textContent =
-        "CELLULAR REMOVAL";
-
-
-    let progress = 0;
-
-
-    decellTimer =
-        setInterval(
-            () => {
-
-                progress += 1;
-
-
-                progressBar.style.width =
-                    `${progress}%`;
-
-
-                progressText.textContent =
-                    `${progress}%`;
-
-
-                /*
-                 * Higher efficiency =
-                 * stronger loss of green tissue
-                 */
-
-                const tissueRemoval =
-                    (
-                        progress / 100
-                    ) *
-                    (
-                        efficiency / 100
-                    );
-
-
-                const saturation =
-                    Math.max(
-                        0.12,
-                        1 -
-                        tissueRemoval * 0.9
-                    );
-
-
-                const brightness =
-                    1 +
-                    tissueRemoval * 0.18;
-
-
-                if (leaf) {
-
-                    leaf.style.filter =
-                        `
-                        saturate(${saturation})
-                        brightness(${brightness})
-                        `;
-                }
-
-
-                if (progress >= 100) {
-
-                    clearInterval(
-                        decellTimer
-                    );
-
-                    finishDecellularization();
-
-                }
-
-            },
-
-            45
-        );
+    updateDecellularizationUI();
 
 }
 
+/* =========================================
 
-/* ============================================================
-   FINISH DECELLULARIZATION
-============================================================ */
+   TREATMENT SLIDER
 
-function finishDecellularization() {
+========================================= */
 
-    const efficiency =
-        experiment
-            .decellularization
-            .efficiency;
+const treatmentSlider =
 
+    document.getElementById("treatment-slider");
+
+if (treatmentSlider) {
+
+    treatmentSlider.addEventListener(
+
+        "input",
+
+        function () {
+
+            const value =
+
+                Number(this.value);
+
+            experiment.treatmentProgress =
+
+                value;
+
+            updateTreatmentFromSlider();
+
+        }
+
+    );
+
+}
+
+/* =========================================
+
+   TREATMENT MODEL
+
+========================================= */
+
+function updateTreatmentFromSlider() {
+
+    const progress =
+
+        experiment.treatmentProgress;
 
     /*
-     * Educational model.
-     *
-     * This is NOT experimental data.
-     */
 
-    const preservation =
-        Math.min(
-            99,
+       This is intentionally a MODEL.
+
+       It does not claim that a particular
+
+       treatment percentage corresponds to
+
+       a real chemical concentration/time.
+
+    */
+
+    experiment.cellularRemoval =
+
+        Math.round(progress * 0.92);
+
+    /*
+
+       We assume that structural preservation
+
+       remains relatively high while treatment
+
+       progresses, but may decrease slightly
+
+       at extreme treatment levels.
+
+       This is an educational model, not
+
+       experimental data.
+
+    */
+
+    experiment.structuralPreservation =
+
+        Math.max(
+
+            82,
+
             Math.round(
-                55 +
-                efficiency * 0.4
+
+                100 - Math.max(0, progress - 70) * 0.45
+
             )
+
         );
 
-
-    experiment
-        .decellularization
-        .preservation =
-            preservation;
-
-
-    experiment
-        .decellularization
-        .completed =
-            true;
-
-
     document.getElementById(
-        "preservation"
+
+        "treatment-progress-text"
+
     ).textContent =
-        `${preservation}%`;
 
+        `${progress}%`;
 
     document.getElementById(
-        "decell-status"
+
+        "cell-removal-value"
+
     ).textContent =
-        "COMPLETE";
 
+        `${experiment.cellularRemoval}%`;
 
     document.getElementById(
-        "decell-overlay"
+
+        "structure-value"
+
     ).textContent =
-        "DECELLULARIZED";
 
-
-    document.getElementById(
-        "decell-result"
-    ).innerHTML =
-
-        `
-        <strong>
-            Decellularization complete.
-        </strong>
-        <br><br>
-        Simulated cellular removal:
-        ${efficiency}%.
-        <br>
-        Estimated vascular structure preservation:
-        ${preservation}%.
-        `;
-
-
-    runDecellButton.disabled = false;
-
-    runDecellButton.textContent =
-        "RUN AGAIN";
-
-
-    /*
-     * Guided Mode automatically continues.
-     */
-
-    if (
-        experiment.mode === "guided"
-    ) {
-
-        setTimeout(
-            () => {
-
-                showStep(3);
-
-            },
-            1000
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   DYE SLIDER
-============================================================ */
-
-const dyeSlider =
-    document.getElementById(
-        "dye-slider"
-    );
-
-
-const dyeValue =
-    document.getElementById(
-        "dye-value"
-    );
-
-
-dyeSlider.addEventListener(
-    "input",
-    () => {
-
-        experiment.flow.concentration =
-            Number(dyeSlider.value);
-
-
-        dyeValue.textContent =
-            `${dyeSlider.value}%`;
-
-    }
-);
-
-
-/* ============================================================
-   TIME SLIDER
-============================================================ */
-
-const timeSlider =
-    document.getElementById(
-        "time-slider"
-    );
-
-
-const timeValue =
-    document.getElementById(
-        "time-value"
-    );
-
-
-timeSlider.addEventListener(
-    "input",
-    () => {
-
-        experiment.flow.time =
-            Number(timeSlider.value);
-
-
-        timeValue.textContent =
-            `${timeSlider.value} s`;
-
-    }
-);
-
-
-/* ============================================================
-   FLOW SIMULATION
-============================================================ */
-
-const injectButton =
-    document.getElementById(
-        "inject-dye"
-    );
-
-
-injectButton.addEventListener(
-    "click",
-    startFlow
-);
-
-
-function startFlow() {
-
-    /*
-     * In Guided Mode, require
-     * decellularization first.
-     */
-
-    if (
-        experiment.mode === "guided" &&
-        !experiment.decellularization.completed
-    ) {
-
-        alert(
-            "Complete decellularization first."
-        );
-
-        showStep(2);
-
-        return;
-
-    }
-
-
-    if (flowTimer) {
-
-        clearInterval(flowTimer);
-
-    }
-
-
-    injectButton.disabled = true;
-
-    injectButton.textContent =
-        "DYE INJECTION...";
-
+        `${experiment.structuralPreservation}%`;
 
     document.getElementById(
-        "flow-status"
+
+        "preservation-display"
+
     ).textContent =
-        "ACTIVE";
 
+        `${experiment.structuralPreservation}%`;
 
-    /*
-     * Calculate model output.
-     */
+    document.getElementById(
 
-    const concentration =
-        experiment.flow.concentration;
+        "cell-removal-bar"
 
+    ).style.width =
 
-    const time =
-        experiment.flow.time;
+        `${experiment.cellularRemoval}%`;
 
+    document.getElementById(
 
-    const preservation =
-        experiment
-            .decellularization
-            .preservation;
+        "structure-bar"
 
+    ).style.width =
 
-    /*
-     * Distance:
-     *
-     * More concentration,
-     * longer observation time,
-     * and better preserved network
-     * increase simulated transport.
-     */
-
-    const distance =
-        (
-            3.5 +
-            concentration * 0.075 +
-            time * 0.24
-        ) *
-        (
-            0.75 +
-            preservation / 400
-        );
-
-
-    const velocity =
-        distance /
-        Math.max(time, 1);
-
-
-    const coverage =
-        Math.min(
-            99,
-            Math.round(
-                12 +
-                concentration * 0.38 +
-                time * 0.68 +
-                preservation * 0.12
-            )
-        );
-
-
-    experiment.flow.distance =
-        Number(
-            distance.toFixed(2)
-        );
-
-
-    experiment.flow.velocity =
-        Number(
-            velocity.toFixed(3)
-        );
-
-
-    experiment.flow.coverage =
-        coverage;
-
-
-    animateFlow();
-
-}
-
-
-/* ============================================================
-   FLOW ANIMATION
-============================================================ */
-
-function animateFlow() {
+        `${experiment.structuralPreservation}%`;
 
     const leaf =
-        document.getElementById(
-            "flow-leaf"
-        );
 
+        document.querySelector(".decell-leaf");
 
-    const stage =
-        document.getElementById(
-            "flow-stage"
-        );
+    if (leaf) {
 
+        leaf.className =
 
-    /*
-     * Remove previous dye.
-     */
+            "leaf decell-leaf";
 
-    document
-        .querySelectorAll(
-            ".dye-path, .vein-dye"
-        )
-        .forEach(
-            element =>
-                element.remove()
-        );
+        if (progress > 0) {
 
+            const level =
 
-    /*
-     * Create several dye segments.
-     */
+                Math.round(progress / 10) * 10;
 
-    const segments = [
+            leaf.classList.add(
 
-        {
-            left: "14%",
-            top: "48%",
-            width: "20%"
-        },
+                `treatment-${level}`
 
-        {
-            left: "30%",
-            top: "46%",
-            width: "18%"
-        },
-
-        {
-            left: "45%",
-            top: "44%",
-            width: "17%"
-        },
-
-        {
-            left: "59%",
-            top: "42%",
-            width: "14%"
-        },
-
-        {
-            left: "70%",
-            top: "40%",
-            width: "10%"
-        }
-
-    ];
-
-
-    segments.forEach(
-        (segment, index) => {
-
-            const dye =
-                document.createElement(
-                    "div"
-                );
-
-
-            dye.className =
-                "vein-dye";
-
-
-            dye.style.left =
-                segment.left;
-
-
-            dye.style.top =
-                segment.top;
-
-
-            dye.style.width =
-                "0";
-
-
-            dye.style.transform =
-                "rotate(0deg)";
-
-
-            dye.style.animationDelay =
-                `${index * 0.45}s`;
-
-
-            leaf.appendChild(
-                dye
-            );
-
-
-            setTimeout(
-                () => {
-
-                    dye.style.width =
-                        segment.width;
-
-                },
-
-                index * 450
             );
 
         }
-    );
-
-
-    /*
-     * Moving particles
-     */
-
-    const particlePositions = [
-
-        ["12%", "47%"],
-        ["25%", "47%"],
-        ["38%", "45%"],
-        ["51%", "43%"],
-        ["63%", "41%"],
-        ["75%", "39%"]
-
-    ];
-
-
-    particlePositions.forEach(
-        (position, index) => {
-
-            const particle =
-                document.createElement(
-                    "div"
-                );
-
-
-            particle.className =
-                "dye-path";
-
-
-            particle.style.left =
-                position[0];
-
-
-            particle.style.top =
-                position[1];
-
-
-            particle.style.animationDelay =
-                `${index * 0.45}s`;
-
-
-            leaf.appendChild(
-                particle
-            );
-
-        }
-    );
-
-
-    /*
-     * Telemetry animation.
-     */
-
-    let progress = 0;
-
-
-    flowTimer =
-        setInterval(
-            () => {
-
-                progress += 2;
-
-
-                const ratio =
-                    progress / 100;
-
-
-                document.getElementById(
-                    "flow-distance"
-                ).textContent =
-                    `${(
-                        experiment.flow.distance *
-                        ratio
-                    ).toFixed(1)} mm`;
-
-
-                document.getElementById(
-                    "flow-velocity"
-                ).textContent =
-                    `${experiment.flow.velocity.toFixed(2)} mm/s`;
-
-
-                document.getElementById(
-                    "flow-coverage"
-                ).textContent =
-                    `${Math.round(
-                        experiment.flow.coverage *
-                        ratio
-                    )}%`;
-
-
-                if (progress >= 100) {
-
-                    clearInterval(
-                        flowTimer
-                    );
-
-
-                    finishFlow();
-
-                }
-
-            },
-
-            50
-        );
-
-}
-
-
-/* ============================================================
-   FINISH FLOW
-============================================================ */
-
-function finishFlow() {
-
-    experiment.flow.completed =
-        true;
-
-
-    document.getElementById(
-        "flow-status"
-    ).textContent =
-        "COMPLETE";
-
-
-    injectButton.disabled =
-        false;
-
-
-    injectButton.textContent =
-        "RUN AGAIN";
-
-
-    if (
-        experiment.mode === "guided"
-    ) {
-
-        setTimeout(
-            () => {
-
-                showStep(4);
-
-                updateAnalysis();
-
-            },
-
-            1200
-        );
 
     }
 
-}
+    const result =
 
+        document.getElementById(
 
-/* ============================================================
-   ANALYSIS
-============================================================ */
+            "decell-result"
 
-function updateAnalysis() {
+        );
 
-    document.getElementById(
-        "analysis-preservation"
-    ).textContent =
-        `${experiment.decellularization.preservation}%`;
+    if (progress === 0) {
 
+        result.textContent =
 
-    document.getElementById(
-        "analysis-distance"
-    ).textContent =
-        `${experiment.flow.distance.toFixed(1)} mm`;
-
-
-    document.getElementById(
-        "analysis-velocity"
-    ).textContent =
-        `${experiment.flow.velocity.toFixed(2)} mm/s`;
-
-
-    document.getElementById(
-        "analysis-coverage"
-    ).textContent =
-        `${experiment.flow.coverage}%`;
-
-
-    /*
-     * Scientific interpretation
-     */
-
-    const preservation =
-        experiment.decellularization.preservation;
-
-
-    const coverage =
-        experiment.flow.coverage;
-
-
-    let interpretation = "";
-
-
-    if (
-        preservation >= 80 &&
-        coverage >= 60
-    ) {
-
-        interpretation =
-
-            `
-            <strong>
-                High structural preservation and broad
-                simulated network coverage were observed.
-            </strong>
-            <br><br>
-
-            The model suggests that the simulated
-            decellularization condition preserved a substantial
-            portion of the spinach leaf's vascular architecture.
-            The simulated dye subsequently reached a relatively
-            large fraction of the network.
-            `;
+            "Treatment has not started.";
 
     }
 
-    else if (
-        preservation >= 65
-    ) {
+    else if (progress < 30) {
 
-        interpretation =
+        result.textContent =
 
-            `
-            <strong>
-                Moderate structural preservation was observed.
-            </strong>
-            <br><br>
+            "Early cellular-material removal is being modeled. The leaf remains visibly green.";
 
-            The simulated vascular network remained sufficiently
-            preserved for dye transport to occur through multiple
-            branches. Increasing preservation or observation time
-            could increase simulated network coverage.
-            `;
+    }
+
+    else if (progress < 60) {
+
+        result.textContent =
+
+            "The model shows decreasing cellular pigmentation while the main vascular structure remains visible.";
+
+    }
+
+    else if (progress < 90) {
+
+        result.textContent =
+
+            "Most cellular coloration has been removed in the model. The major vein network remains visible.";
 
     }
 
     else {
 
-        interpretation =
+        result.textContent =
 
-            `
-            <strong>
-                Limited structural preservation was observed.
-            </strong>
-            <br><br>
-
-            The model predicts reduced transport through the
-            vascular network when cellular removal is accompanied
-            by greater structural disruption.
-            `;
+            "The model predicts substantial cellular-material removal with preserved structural pathways. This visual result alone cannot prove complete decellularization.";
 
     }
 
+    if (progress > 0) {
 
-    interpretation +=
+        document.getElementById(
 
-        `
-        <br><br>
+            "decell-status"
 
-        <strong>Important limitation:</strong>
-        These values are generated by an educational simulation
-        model and are not measurements from a real laboratory
-        experiment. Spinach leaf veins are structurally different
-        from living human blood vessels, so this model represents
-        branching and fluid-transport concepts rather than a
-        direct human vascular equivalent.
-        `;
+        ).textContent =
 
+            "RUNNING";
+
+    }
+
+    if (progress >= 100) {
+
+        experiment.treatmentStarted = true;
+
+        document.getElementById(
+
+            "decell-status"
+
+        ).textContent =
+
+            "COMPLETE";
+
+        document.getElementById(
+
+            "treatment-button"
+
+        ).textContent =
+
+            "TREATMENT COMPLETE";
+
+        document.getElementById(
+
+            "treatment-button"
+
+        ).disabled =
+
+            true;
+
+        document.getElementById(
+
+            "wash-button"
+
+        ).classList.remove("hidden");
+
+    }
+
+}
+
+/* =========================================
+
+   START TREATMENT
+
+========================================= */
+
+function startTreatment() {
+
+    if (experiment.treatmentStarted) {
+
+        return;
+
+    }
+
+    const button =
+
+        document.getElementById(
+
+            "treatment-button"
+
+        );
+
+    button.disabled = true;
+
+    button.textContent =
+
+        "TREATMENT IN PROGRESS";
+
+    let progress = 0;
+
+    const interval =
+
+        setInterval(() => {
+
+            progress += 2;
+
+            treatmentSlider.value =
+
+                progress;
+
+            experiment.treatmentProgress =
+
+                progress;
+
+            updateTreatmentFromSlider();
+
+            if (progress >= 100) {
+
+                clearInterval(interval);
+
+                button.textContent =
+
+                    "TREATMENT COMPLETE";
+
+            }
+
+        }, 70);
+
+}
+
+/* =========================================
+
+   WASHING
+
+========================================= */
+
+function completeWashing() {
+
+    experiment.washingCompleted = true;
+
+    const status =
+
+        document.getElementById(
+
+            "decell-status"
+
+        );
+
+    status.textContent =
+
+        "WASHED";
+
+    const result =
+
+        document.getElementById(
+
+            "decell-result"
+
+        );
+
+    result.textContent =
+
+        "Virtual washing is complete. The model now treats the sample as a processed, rehydrated scaffold for the flow simulation.";
+
+    const button =
+
+        document.getElementById(
+
+            "wash-button"
+
+        );
+
+    button.textContent =
+
+        "WASH COMPLETE";
+
+    button.disabled = true;
+
+    setTimeout(() => {
+
+        showStep(3);
+
+    }, 700);
+
+}
+
+/* =========================================
+
+   FLOW SLIDERS
+
+========================================= */
+
+const dyeSlider =
+
+    document.getElementById("dye-slider");
+
+const timeSlider =
+
+    document.getElementById("time-slider");
+
+if (dyeSlider) {
+
+    dyeSlider.addEventListener(
+
+        "input",
+
+        function () {
+
+            experiment.tracerConcentration =
+
+                Number(this.value);
+
+            document.getElementById(
+
+                "dye-value"
+
+            ).textContent =
+
+                `${this.value}%`;
+
+        }
+
+    );
+
+}
+
+if (timeSlider) {
+
+    timeSlider.addEventListener(
+
+        "input",
+
+        function () {
+
+            experiment.observationTime =
+
+                Number(this.value);
+
+            document.getElementById(
+
+                "time-value"
+
+            ).textContent =
+
+                this.value;
+
+        }
+
+    );
+
+}
+
+/* =========================================
+
+   FLOW MODEL
+
+========================================= */
+
+function calculateFlowModel() {
+
+    const concentration =
+
+        experiment.tracerConcentration;
+
+    const time =
+
+        experiment.observationTime;
+
+    /*
+
+       Educational transport model.
+
+       It deliberately does NOT use a claim
+
+       that this equals real physiological flow.
+
+    */
+
+    const baseDistance =
+
+        0.55 * time;
+
+    const concentrationFactor =
+
+        0.55 + concentration / 200;
+
+    experiment.tracerDistance =
+
+        Math.min(
+
+            55,
+
+            baseDistance * concentrationFactor
+
+        );
+
+    experiment.modelVelocity =
+
+        experiment.tracerDistance / time;
+
+    experiment.tracerCoverage =
+
+        Math.min(
+
+            100,
+
+            Math.round(
+
+                experiment.tracerDistance * 1.7
+
+            )
+
+        );
+
+}
+
+/* =========================================
+
+   INJECT DYE
+
+========================================= */
+
+function injectDye() {
+
+    if (!experiment.washingCompleted) {
+
+        /*
+
+           Normally unreachable because the user
+
+           reaches this page through the wash step.
+
+        */
+
+        alert(
+
+            "Please complete the decellularization and washing stages first."
+
+        );
+
+        return;
+
+    }
+
+    experiment.flowStarted = true;
+
+    calculateFlowModel();
 
     document.getElementById(
-        "interpretation-text"
-    ).innerHTML =
-        interpretation;
 
+        "flow-status"
+
+    ).textContent =
+
+        "FLOW ACTIVE";
+
+    document.getElementById(
+
+        "flow-label"
+
+    ).textContent =
+
+        "TRACER MOVING THROUGH NETWORK";
+
+    updateFlowReadout();
+
+    animateTracer();
+
+    const button =
+
+        document.getElementById(
+
+            "inject-button"
+
+        );
+
+    button.disabled = true;
+
+    button.textContent =
+
+        "TRACER INJECTED";
+
+    setTimeout(() => {
+
+        button.textContent =
+
+            "FLOW OBSERVED";
+
+        document.getElementById(
+
+            "analysis-button"
+
+        ).classList.remove("hidden");
+
+        experiment.analysisReady = true;
+
+    }, 3200);
+
+}
+
+/* =========================================
+
+   FLOW READOUT
+
+========================================= */
+
+function updateFlowReadout() {
+
+    document.getElementById(
+
+        "distance-value"
+
+    ).textContent =
+
+        experiment.tracerDistance.toFixed(1);
+
+    document.getElementById(
+
+        "velocity-value"
+
+    ).textContent =
+
+        experiment.modelVelocity.toFixed(2);
+
+    document.getElementById(
+
+        "coverage-value"
+
+    ).textContent =
+
+        experiment.tracerCoverage;
+
+}
+
+/* =========================================
+
+   TRACER ANIMATION
+
+========================================= */
+
+function animateTracer() {
+
+    const layer =
+
+        document.getElementById(
+
+            "dye-layer"
+
+        );
+
+    layer.innerHTML = "";
+
+    /*
+
+       Approximate vein coordinates inside
+
+       the visualization.
+
+       These are visual model coordinates,
+
+       not measured anatomical coordinates.
+
+    */
+
+    const path = [
+
+        [50, 73],
+
+        [50, 65],
+
+        [50, 57],
+
+        [50, 49],
+
+        [50, 42],
+
+        [47, 36],
+
+        [42, 32],
+
+        [36, 29],
+
+        [31, 26]
+
+    ];
+
+    path.forEach(
+
+        (point, index) => {
+
+            const particle =
+
+                document.createElement("div");
+
+            particle.className =
+
+                "flow-particle";
+
+            particle.style.left =
+
+                `${point[0]}%`;
+
+            particle.style.top =
+
+                `${point[1]}%`;
+
+            particle.style.opacity =
+
+                "0";
+
+            particle.style.animationDelay =
+
+                `${index * 0.22}s`;
+
+            layer.appendChild(
+
+                particle
+
+            );
+
+            setTimeout(() => {
+
+                particle.style.opacity =
+
+                    "1";
+
+            }, index * 220);
+
+        }
+
+    );
+
+    /*
+
+       Add branch particles after the main
+
+       pathway becomes visible.
+
+    */
+
+    setTimeout(() => {
+
+        createBranchParticles();
+
+    }, 1800);
+
+}
+
+/* =========================================
+
+   BRANCH PARTICLES
+
+========================================= */
+
+function createBranchParticles() {
+
+    const layer =
+
+        document.getElementById(
+
+            "dye-layer"
+
+        );
+
+    const branches = [
+
+        [42, 34],
+
+        [35, 40],
+
+        [57, 44],
+
+        [37, 50],
+
+        [62, 54],
+
+        [39, 61]
+
+    ];
+
+    branches.forEach(
+
+        (point, index) => {
+
+            const particle =
+
+                document.createElement("div");
+
+            particle.className =
+
+                "flow-particle";
+
+            particle.style.left =
+
+                `${point[0]}%`;
+
+            particle.style.top =
+
+                `${point[1]}%`;
+
+            particle.style.opacity =
+
+                "0";
+
+            layer.appendChild(
+
+                particle
+
+            );
+
+            setTimeout(() => {
+
+                particle.style.opacity =
+
+                    "1";
+
+            }, index * 170);
+
+        }
+
+    );
+
+}
+
+/* =========================================
+
+   ANALYSIS
+
+========================================= */
+
+function goToAnalysis() {
+
+    if (!experiment.analysisReady) {
+
+        return;
+
+    }
+
+    updateAnalysis();
+
+    showStep(4);
+
+}
+
+/* =========================================
+
+   UPDATE ANALYSIS
+
+========================================= */
+
+function updateAnalysis() {
+
+    calculateFlowModel();
+
+    document.getElementById(
+
+        "metric-removal"
+
+    ).textContent =
+
+        `${experiment.cellularRemoval}%`;
+
+    document.getElementById(
+
+        "metric-preservation"
+
+    ).textContent =
+
+        `${experiment.structuralPreservation}%`;
+
+    document.getElementById(
+
+        "metric-coverage"
+
+    ).textContent =
+
+        `${experiment.tracerCoverage}%`;
+
+    document.getElementById(
+
+        "metric-velocity"
+
+    ).textContent =
+
+        experiment.modelVelocity.toFixed(2);
+
+    const observation =
+
+        document.getElementById(
+
+            "observation-text"
+
+        );
+
+    observation.innerHTML = `
+
+        The simulation models substantial removal of
+
+        cellular material while retaining a visible
+
+        branching structure.
+
+        <br><br>
+
+        After the virtual washing stage, the tracer
+
+        reaches the modeled main vein and branches.
+
+        <br><br>
+
+        The calculated model velocity is
+
+        <strong>${experiment.modelVelocity.toFixed(2)} mm/s</strong>,
+
+        based only on the simulated distance and
+
+        observation time.
+
+    `;
+
+    const interpretation =
+
+        document.getElementById(
+
+            "interpretation-text"
+
+        );
+
+    interpretation.innerHTML = `
+
+        The simulation is consistent with the intended
+
+        hypothesis at the <strong>model level</strong>:
+
+        the structural network is represented as being
+
+        retained after cellular-material removal, and a
+
+        liquid tracer can be represented as traveling
+
+        through that network.
+
+        <br><br>
+
+        However, this does <strong>not</strong> demonstrate
+
+        complete decellularization or equivalence to human
+
+        blood vessels. Those conclusions require actual
+
+        experimental measurements such as DNA/protein
+
+        quantification, histological assessment, and
+
+        independent perfusion testing.
+
+    `;
+
+    const summary =
+
+        document.getElementById(
+
+            "final-summary"
+
+        );
+
+    summary.textContent =
+
+        "The virtual experiment produced the expected model behavior: cellular material decreased, the modeled leaf vascular structure remained largely preserved, and tracer transport through the network was observed. These are simulated observations rather than measurements from a real spinach leaf.";
 
     createChart();
 
 }
 
+/* =========================================
 
-/* ============================================================
    CHART
-============================================================ */
+
+========================================= */
 
 function createChart() {
 
     const canvas =
+
         document.getElementById(
+
             "flowChart"
+
         );
 
+    if (!canvas) {
 
-    if (!canvas) return;
-
-
-    if (chart) {
-
-        chart.destroy();
+        return;
 
     }
 
+    if (experiment.chart) {
+
+        experiment.chart.destroy();
+
+    }
 
     const totalTime =
-        experiment.flow.time;
 
-
-    const finalCoverage =
-        experiment.flow.coverage;
-
+        experiment.observationTime;
 
     const labels = [];
-    const values = [];
 
+    const data = [];
+
+    const points = 7;
 
     for (
+
         let i = 0;
-        i <= 6;
+
+        i <= points;
+
         i++
+
     ) {
 
-        const ratio =
-            i / 6;
+        const time =
 
+            Math.round(
+
+                (totalTime / points) * i
+
+            );
 
         labels.push(
-            `${Math.round(
-                totalTime * ratio
-            )} s`
+
+            `${time}s`
+
         );
 
+        const coverage =
 
-        values.push(
-            Math.round(
-                finalCoverage * ratio
-            )
+            Math.min(
+
+                100,
+
+                Math.round(
+
+                    experiment.tracerCoverage *
+
+                    (i / points)
+
+                )
+
+            );
+
+        data.push(
+
+            coverage
+
         );
 
     }
 
+    experiment.chart =
 
-    chart =
         new Chart(
+
             canvas.getContext("2d"),
+
             {
 
                 type: "line",
@@ -1268,25 +1201,30 @@ function createChart() {
                         {
 
                             label:
-                                "Simulated network coverage (%)",
 
-                            data: values,
+                                "Simulated tracer coverage",
+
+                            data: data,
 
                             borderColor:
-                                "#69c991",
+
+                                "#6fd39a",
 
                             backgroundColor:
-                                "rgba(105, 201, 145, 0.10)",
+
+                                "rgba(111,211,154,0.10)",
 
                             borderWidth: 2,
 
-                            fill: true,
-
                             tension: 0.35,
+
+                            fill: true,
 
                             pointRadius: 3,
 
-                            pointHoverRadius: 5
+                            pointBackgroundColor:
+
+                                "#6fd39a"
 
                         }
 
@@ -1294,13 +1232,11 @@ function createChart() {
 
                 },
 
-
                 options: {
 
                     responsive: true,
 
                     maintainAspectRatio: false,
-
 
                     plugins: {
 
@@ -1308,11 +1244,11 @@ function createChart() {
 
                             labels: {
 
-                                color: "#819096",
+                                color: "#7e8a90",
 
                                 font: {
 
-                                    size: 11
+                                    size: 10
 
                                 }
 
@@ -1322,47 +1258,61 @@ function createChart() {
 
                     },
 
-
                     scales: {
 
                         x: {
 
                             ticks: {
 
-                                color: "#637178"
+                                color: "#69767c",
+
+                                font: {
+
+                                    size: 10
+
+                                }
 
                             },
 
                             grid: {
 
                                 color:
-                                    "rgba(100,120,120,0.08)"
+
+                                    "rgba(90,105,110,0.12)"
 
                             }
 
                         },
 
-
                         y: {
 
-                            min: 0,
+                            beginAtZero: true,
 
                             max: 100,
 
+                            title: {
+
+                                display: true,
+
+                                text:
+
+                                    "Coverage (%)",
+
+                                color: "#69767c"
+
+                            },
+
                             ticks: {
 
-                                color: "#637178",
-
-                                callback:
-                                    value =>
-                                        `${value}%`
+                                color: "#69767c"
 
                             },
 
                             grid: {
 
                                 color:
-                                    "rgba(100,120,120,0.08)"
+
+                                    "rgba(90,105,110,0.12)"
 
                             }
 
@@ -1373,326 +1323,291 @@ function createChart() {
                 }
 
             }
+
         );
 
 }
 
+/* =========================================
 
-/* ============================================================
+   DECELLULARIZATION UI
+
+========================================= */
+
+function updateDecellularizationUI() {
+
+    document.getElementById(
+
+        "treatment-slider"
+
+    ).value =
+
+        experiment.treatmentProgress;
+
+    updateTreatmentFromSlider();
+
+}
+
+/* =========================================
+
    RESET
-============================================================ */
 
-const resetButton =
-    document.getElementById(
-        "reset-experiment"
-    );
-
-
-resetButton.addEventListener(
-    "click",
-    resetExperiment
-);
-
-
-const newExperimentButton =
-    document.getElementById(
-        "new-experiment"
-    );
-
-
-newExperimentButton.addEventListener(
-    "click",
-    resetExperiment
-);
-
+========================================= */
 
 function resetExperiment() {
 
-    /*
-     * Stop timers.
-     */
+    experiment.currentStep = 1;
 
-    if (decellTimer) {
+    experiment.started = false;
 
-        clearInterval(
-            decellTimer
+    experiment.treatmentStarted = false;
+
+    experiment.washingCompleted = false;
+
+    experiment.flowStarted = false;
+
+    experiment.analysisReady = false;
+
+    experiment.treatmentProgress = 0;
+
+    experiment.cellularRemoval = 0;
+
+    experiment.structuralPreservation = 100;
+
+    experiment.tracerConcentration = 50;
+
+    experiment.observationTime = 30;
+
+    experiment.tracerDistance = 0;
+
+    experiment.tracerCoverage = 0;
+
+    experiment.modelVelocity = 0;
+
+    /* treatment */
+
+    const treatment =
+
+        document.getElementById(
+
+            "treatment-slider"
+
         );
 
-    }
+    treatment.value = 0;
 
+    const treatmentButton =
 
-    if (flowTimer) {
+        document.getElementById(
 
-        clearInterval(
-            flowTimer
+            "treatment-button"
+
         );
 
-    }
+    treatmentButton.disabled = false;
 
+    treatmentButton.textContent =
 
-    decellTimer = null;
-    flowTimer = null;
+        "START TREATMENT";
 
+    document.getElementById(
 
-    /*
-     * Reset state.
-     */
+        "wash-button"
 
-    experiment.step = 1;
+    ).classList.add("hidden");
 
-    experiment.mode = "guided";
+    document.getElementById(
 
+        "decell-status"
 
-    experiment.decellularization =
-        {
+    ).textContent =
 
-            efficiency: 70,
+        "READY";
 
-            preservation: 0,
+    /* flow */
 
-            completed: false
+    document.getElementById(
 
-        };
+        "dye-slider"
 
+    ).value = 50;
 
-    experiment.flow =
-        {
+    document.getElementById(
 
-            concentration: 50,
+        "time-slider"
 
-            time: 30,
+    ).value = 30;
 
-            distance: 0,
+    document.getElementById(
 
-            velocity: 0,
+        "dye-value"
 
-            coverage: 0,
+    ).textContent =
 
-            completed: false
-
-        };
-
-
-    /*
-     * Reset controls.
-     */
-
-    decellSlider.value = 70;
-
-    decellValue.textContent =
-        "70%";
-
-
-    dyeSlider.value = 50;
-
-    dyeValue.textContent =
         "50%";
 
+    document.getElementById(
 
-    timeSlider.value = 30;
+        "time-value"
 
-    timeValue.textContent =
-        "30 s";
+    ).textContent =
 
+        "30";
 
-    /*
-     * Reset leaf.
-     */
+    document.getElementById(
 
-    [
-        "decell-leaf",
-        "flow-leaf"
-    ].forEach(
-        id => {
+        "distance-value"
 
-            const leaf =
-                document.getElementById(id);
+    ).textContent =
 
+        "0.0";
 
-            if (leaf) {
+    document.getElementById(
 
-                leaf.style.filter =
-                    "";
+        "velocity-value"
 
-            }
+    ).textContent =
 
-        }
-    );
+        "0.00";
 
+    document.getElementById(
 
-    /*
-     * Remove dye.
-     */
+        "coverage-value"
 
-    document
-        .querySelectorAll(
-            ".dye-path, .vein-dye"
-        )
-        .forEach(
-            element =>
-                element.remove()
+    ).textContent =
+
+        "0";
+
+    document.getElementById(
+
+        "flow-status"
+
+    ).textContent =
+
+        "READY";
+
+    document.getElementById(
+
+        "flow-label"
+
+    ).textContent =
+
+        "WAITING FOR INJECTION";
+
+    const injectButton =
+
+        document.getElementById(
+
+            "inject-button"
+
         );
 
-
-    /*
-     * Reset progress.
-     */
-
-    document.getElementById(
-        "decell-progress"
-    ).style.width =
-        "0%";
-
-
-    document.getElementById(
-        "decell-progress-text"
-    ).textContent =
-        "0%";
-
-
-    document.getElementById(
-        "preservation"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "decell-status"
-    ).textContent =
-        "READY";
-
-
-    document.getElementById(
-        "decell-overlay"
-    ).textContent =
-        "CELLULAR TISSUE";
-
-
-    document.getElementById(
-        "decell-result"
-    ).innerHTML =
-        `
-        Adjust the efficiency and run
-        the virtual decellularization process.
-        `;
-
-
-    /*
-     * Reset flow.
-     */
-
-    document.getElementById(
-        "flow-status"
-    ).textContent =
-        "READY";
-
-
-    document.getElementById(
-        "flow-distance"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "flow-velocity"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "flow-coverage"
-    ).textContent =
-        "--";
-
-
-    injectButton.disabled =
-        false;
-
+    injectButton.disabled = false;
 
     injectButton.textContent =
-        "Inject Dye";
 
+        "INJECT TRACER";
 
-    runDecellButton.disabled =
-        false;
+    document.getElementById(
 
+        "analysis-button"
 
-    runDecellButton.textContent =
-        "Run Simulation";
+    ).classList.add("hidden");
 
+    document.getElementById(
 
-    /*
-     * Reset mode.
-     */
+        "dye-layer"
 
-    guidedButton.classList.add(
-        "selected"
-    );
+    ).innerHTML = "";
 
+    /* analysis */
 
-    freeButton.classList.remove(
-        "selected"
-    );
+    document.getElementById(
 
+        "metric-removal"
 
-    /*
-     * Reset chart.
-     */
+    ).textContent =
 
-    if (chart) {
+        "0%";
 
-        chart.destroy();
+    document.getElementById(
 
-        chart = null;
+        "metric-preservation"
+
+    ).textContent =
+
+        "100%";
+
+    document.getElementById(
+
+        "metric-coverage"
+
+    ).textContent =
+
+        "0%";
+
+    document.getElementById(
+
+        "metric-velocity"
+
+    ).textContent =
+
+        "0.00";
+
+    document.getElementById(
+
+        "observation-text"
+
+    ).textContent =
+
+        "No simulation has been completed yet.";
+
+    document.getElementById(
+
+        "interpretation-text"
+
+    ).textContent =
+
+        "Complete the simulated experiment to generate an interpretation.";
+
+    document.getElementById(
+
+        "final-summary"
+
+    ).textContent =
+
+        "Complete all simulated stages to obtain the final interpretation.";
+
+    if (experiment.chart) {
+
+        experiment.chart.destroy();
+
+        experiment.chart = null;
 
     }
 
-
-    /*
-     * Reset analysis.
-     */
-
-    document.getElementById(
-        "analysis-preservation"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "analysis-distance"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "analysis-velocity"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "analysis-coverage"
-    ).textContent =
-        "--";
-
-
-    document.getElementById(
-        "interpretation-text"
-    ).textContent =
-        "Complete the simulation to generate an interpretation of the results.";
-
-
-    /*
-     * Back to Sample.
-     */
+    updateDecellularizationUI();
 
     showStep(1);
 
 }
 
+/* =========================================
 
-/* ============================================================
    INITIALIZE
-============================================================ */
 
-showStep(1);
+========================================= */
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    function () {
+
+        updateDecellularizationUI();
+
+        showStep(1);
+
+    }
+
+);
