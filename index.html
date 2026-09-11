@@ -2,32 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Spinach Vascular Lab</title>
 
     <link rel="stylesheet" href="style.css">
 
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-    <!-- =====================================================
-         TOP BAR
-    ====================================================== -->
+<div class="app">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
 
     <header class="topbar">
 
         <div class="brand">
 
-            <div class="brand-icon">
-                🧬
+            <div class="brand-mark">
+                <span>🧬</span>
             </div>
 
             <div>
@@ -41,31 +38,24 @@
 
         </div>
 
-
         <div class="system-status">
-
-            <span class="status-dot"></span>
-
-            <span class="status">
-                SYSTEM ONLINE
-            </span>
-
+            <span class="online-dot"></span>
+            SYSTEM ONLINE
         </div>
 
     </header>
 
 
+    <!-- =========================
+         APPLICATION BODY
+    ========================== -->
 
-    <!-- =====================================================
-         MAIN APPLICATION
-    ====================================================== -->
-
-    <div class="app-container">
+    <div class="app-body">
 
 
-        <!-- =================================================
+        <!-- =====================
              SIDEBAR
-        ================================================== -->
+        ====================== -->
 
         <aside class="sidebar">
 
@@ -74,80 +64,53 @@
             </div>
 
 
-            <nav class="experiment-steps">
+            <div class="steps">
 
                 <button
                     class="step active"
+                    data-step="1"
                     type="button"
                 >
-
-                    <span class="step-number">
-                        01
-                    </span>
-
-                    <span class="step-name">
-                        Sample
-                    </span>
-
+                    <span class="step-number">01</span>
+                    <span>Sample</span>
                 </button>
 
 
                 <button
                     class="step"
+                    data-step="2"
                     type="button"
                 >
-
-                    <span class="step-number">
-                        02
-                    </span>
-
-                    <span class="step-name">
-                        Decellularization
-                    </span>
-
+                    <span class="step-number">02</span>
+                    <span>Decellularization</span>
                 </button>
 
 
                 <button
                     class="step"
+                    data-step="3"
                     type="button"
                 >
-
-                    <span class="step-number">
-                        03
-                    </span>
-
-                    <span class="step-name">
-                        Vascular Flow
-                    </span>
-
+                    <span class="step-number">03</span>
+                    <span>Vascular Flow</span>
                 </button>
 
 
                 <button
                     class="step"
+                    data-step="4"
                     type="button"
                 >
-
-                    <span class="step-number">
-                        04
-                    </span>
-
-                    <span class="step-name">
-                        Analysis
-                    </span>
-
+                    <span class="step-number">04</span>
+                    <span>Analysis</span>
                 </button>
 
-            </nav>
+            </div>
 
 
+            <div class="sidebar-bottom">
 
-            <!-- SAMPLE ID -->
-
-            <div class="sample-id-box">
-
-                <div class="small-label">
+                <div class="sample-id-label">
                     SAMPLE ID
                 </div>
 
@@ -155,44 +118,41 @@
                     SP-2026-001
                 </div>
 
+
+                <button
+                    id="reset-experiment"
+                    class="reset-button"
+                    type="button"
+                >
+                    RESET EXPERIMENT
+                </button>
+
             </div>
-
-
-            <!-- RESET -->
-
-            <button
-                id="reset-experiment"
-                class="reset-button"
-                type="button"
-            >
-                RESET EXPERIMENT
-            </button>
 
         </aside>
 
 
+        <!-- =====================
+             MAIN
+        ====================== -->
 
-        <!-- =================================================
-             MAIN CONTENT
-        ================================================== -->
-
-        <main class="main-content">
+        <main class="main">
 
 
             <!-- =================================================
-                 STEP 01 — SAMPLE
+                 STEP 01
             ================================================== -->
 
             <section
                 id="step1"
-                class="experiment-section"
+                class="step-section active-section"
             >
 
-                <div class="section-header">
+                <div class="section-heading">
 
                     <div>
 
-                        <div class="step-label">
+                        <div class="eyebrow">
                             STEP 01
                         </div>
 
@@ -201,32 +161,27 @@
                         </h2>
 
                         <p>
-                            Select and inspect a virtual
-                            spinach leaf sample before
-                            decellularization.
+                            Select and inspect a virtual spinach
+                            leaf sample before decellularization.
                         </p>
 
                     </div>
 
-
-                    <div class="section-status">
+                    <div class="ready-badge">
                         READY
                     </div>
 
                 </div>
 
 
+                <div class="sample-grid">
 
-                <div class="experiment-grid">
 
+                    <!-- SAMPLE VIEW -->
 
-                    <!-- =========================================
-                         SAMPLE VIEW
-                    ========================================== -->
+                    <div class="panel sample-panel">
 
-                    <div class="panel sample-view-panel">
-
-                        <div class="panel-header">
+                        <div class="panel-top">
 
                             <span>
                                 LIVE SAMPLE VIEW
@@ -239,29 +194,26 @@
                         </div>
 
 
-                        <div class="sample-view">
+                        <div class="sample-stage">
 
-                            <div class="leaf">
+                            <div class="leaf" id="sample-leaf">
 
-                                <!-- Main vein -->
+                                <div class="main-vein"></div>
 
-                                <div class="vein vein-main"></div>
+                                <div class="branch branch-a"></div>
+                                <div class="branch branch-b"></div>
+                                <div class="branch branch-c"></div>
+                                <div class="branch branch-d"></div>
+                                <div class="branch branch-e"></div>
+                                <div class="branch branch-f"></div>
+                                <div class="branch branch-g"></div>
+                                <div class="branch branch-h"></div>
+
+                            </div>
 
 
-                                <!-- Branches -->
-
-                                <div class="vein vein-1"></div>
-
-                                <div class="vein vein-2"></div>
-
-                                <div class="vein vein-3"></div>
-
-                                <div class="vein vein-4"></div>
-
-                                <div class="vein vein-5"></div>
-
-                                <div class="vein vein-6"></div>
-
+                            <div class="stage-label">
+                                SPINACH LEAF / CELLULAR
                             </div>
 
                         </div>
@@ -269,10 +221,7 @@
                     </div>
 
 
-
-                    <!-- =========================================
-                         SAMPLE INFORMATION
-                    ========================================== -->
+                    <!-- INFORMATION -->
 
                     <div class="panel information-panel">
 
@@ -283,55 +232,61 @@
 
                         <div class="info-list">
 
-
                             <div class="info-row">
-
-                                <span>
-                                    Sample
-                                </span>
-
-                                <strong>
-                                    Spinach Leaf
-                                </strong>
-
+                                <span>Sample</span>
+                                <strong>Spinach Leaf</strong>
                             </div>
 
-
                             <div class="info-row">
-
-                                <span>
-                                    Initial State
-                                </span>
-
-                                <strong>
-                                    Cellular
-                                </strong>
-
+                                <span>Initial State</span>
+                                <strong>Cellular</strong>
                             </div>
 
-
                             <div class="info-row">
-
-                                <span>
-                                    Vascular Network
-                                </span>
-
-                                <strong>
+                                <span>Vascular Network</span>
+                                <strong class="positive">
                                     Detected
                                 </strong>
-
                             </div>
 
-
                             <div class="info-row">
+                                <span>Estimated Veins</span>
+                                <strong>42</strong>
+                            </div>
 
-                                <span>
-                                    Estimated Veins
-                                </span>
+                        </div>
 
-                                <strong>
-                                    42
-                                </strong>
+
+                        <div class="mode-box">
+
+                            <div class="mode-title">
+                                EXPERIMENT MODE
+                            </div>
+
+                            <div class="mode-options">
+
+                                <button
+                                    id="guided-mode"
+                                    class="mode-button selected"
+                                    type="button"
+                                >
+                                    <strong>Guided</strong>
+                                    <span>
+                                        Follow the experimental sequence
+                                    </span>
+                                </button>
+
+
+                                <button
+                                    id="free-mode"
+                                    class="mode-button"
+                                    type="button"
+                                >
+                                    <strong>Free Experiment</strong>
+                                    <span>
+                                        Explore parameters freely
+                                    </span>
+                                </button>
 
                             </div>
 
@@ -339,7 +294,7 @@
 
 
                         <button
-                            id="begin-decellularization"
+                            id="begin-experiment"
                             class="primary-button"
                             type="button"
                         >
@@ -355,20 +310,19 @@
 
 
             <!-- =================================================
-                 STEP 02 — DECELLULARIZATION
+                 STEP 02
             ================================================== -->
 
             <section
                 id="step2"
-                class="experiment-section"
-                style="display: none;"
+                class="step-section"
             >
 
-                <div class="section-header">
+                <div class="section-heading">
 
                     <div>
 
-                        <div class="step-label">
+                        <div class="eyebrow">
                             STEP 02
                         </div>
 
@@ -377,62 +331,65 @@
                         </h2>
 
                         <p>
-                            Simulate removal of cellular
-                            tissue while preserving the
-                            spinach vascular structure.
+                            Simulate removal of cellular tissue
+                            while preserving the vascular structure.
                         </p>
 
                     </div>
 
-
-                    <div class="section-status">
-                        CONTROL
+                    <div class="process-badge">
+                        SIMULATION
                     </div>
 
                 </div>
 
 
+                <div class="sample-grid">
 
-                <div class="experiment-grid">
 
+                    <!-- VISUAL -->
 
-                    <!-- =========================================
-                         SAMPLE VIEW
-                    ========================================== -->
+                    <div class="panel sample-panel">
 
-                    <div class="panel sample-view-panel">
-
-                        <div class="panel-header">
+                        <div class="panel-top">
 
                             <span>
                                 DECELLULARIZATION VIEW
                             </span>
 
-                            <span>
-                                LIVE
+                            <span id="decell-status">
+                                READY
                             </span>
 
                         </div>
 
 
-                        <div class="sample-view">
+                        <div class="sample-stage">
 
-                            <div class="leaf">
+                            <div
+                                class="leaf"
+                                id="decell-leaf"
+                            >
 
-                                <div class="vein vein-main"></div>
+                                <div class="main-vein"></div>
 
-                                <div class="vein vein-1"></div>
+                                <div class="branch branch-a"></div>
+                                <div class="branch branch-b"></div>
+                                <div class="branch branch-c"></div>
+                                <div class="branch branch-d"></div>
+                                <div class="branch branch-e"></div>
+                                <div class="branch branch-f"></div>
+                                <div class="branch branch-g"></div>
+                                <div class="branch branch-h"></div>
 
-                                <div class="vein vein-2"></div>
+                            </div>
 
-                                <div class="vein vein-3"></div>
 
-                                <div class="vein vein-4"></div>
-
-                                <div class="vein vein-5"></div>
-
-                                <div class="vein vein-6"></div>
-
+                            <div
+                                id="decell-overlay"
+                                class="process-overlay"
+                            >
+                                CELLULAR TISSUE
                             </div>
 
                         </div>
@@ -440,29 +397,24 @@
                     </div>
 
 
-
-                    <!-- =========================================
-                         CONTROLS
-                    ========================================== -->
+                    <!-- CONTROL -->
 
                     <div class="panel control-panel">
 
                         <h3>
-                            Process Control
+                            Decellularization Control
                         </h3>
 
 
-                        <div class="control-group">
+                        <div class="control-block">
 
-                            <div class="control-heading">
+                            <div class="control-title">
 
                                 <span>
                                     Decellularization Efficiency
                                 </span>
 
-                                <strong
-                                    id="decell-efficiency-value"
-                                >
+                                <strong id="decell-value">
                                     70%
                                 </strong>
 
@@ -470,52 +422,42 @@
 
 
                             <input
-                                id="decell-efficiency"
+                                id="decell-slider"
                                 type="range"
                                 min="0"
                                 max="100"
                                 value="70"
                             >
 
+
                             <div class="range-labels">
-
-                                <span>
-                                    0%
-                                </span>
-
-                                <span>
-                                    100%
-                                </span>
-
+                                <span>LOW</span>
+                                <span>HIGH</span>
                             </div>
 
                         </div>
 
 
+                        <div class="control-block">
 
-                        <!-- Progress -->
-
-                        <div class="control-group">
-
-                            <div class="control-heading">
+                            <div class="control-title">
 
                                 <span>
-                                    Process Progress
+                                    PROCESS PROGRESS
                                 </span>
 
-                                <span>
-                                    SIMULATION
+                                <span id="decell-progress-text">
+                                    0%
                                 </span>
 
                             </div>
 
 
-                            <div class="progress-bar">
+                            <div class="progress-track">
 
                                 <div
                                     id="decell-progress"
                                     class="progress-fill"
-                                    style="width: 0%;"
                                 ></div>
 
                             </div>
@@ -523,10 +465,7 @@
                         </div>
 
 
-
-                        <!-- Preservation -->
-
-                        <div class="result-box">
+                        <div class="result-card">
 
                             <span>
                                 STRUCTURE PRESERVATION
@@ -539,15 +478,13 @@
                         </div>
 
 
-
                         <div
                             id="decell-result"
-                            class="simulation-result"
+                            class="result-message"
                         >
-                            Configure the experimental
-                            conditions and run the simulation.
+                            Adjust the efficiency and run
+                            the virtual decellularization process.
                         </div>
-
 
 
                         <button
@@ -567,20 +504,19 @@
 
 
             <!-- =================================================
-                 STEP 03 — VASCULAR FLOW
+                 STEP 03
             ================================================== -->
 
             <section
                 id="step3"
-                class="experiment-section"
-                style="display: none;"
+                class="step-section"
             >
 
-                <div class="section-header">
+                <div class="section-heading">
 
                     <div>
 
-                        <div class="step-label">
+                        <div class="eyebrow">
                             STEP 03
                         </div>
 
@@ -589,61 +525,68 @@
                         </h2>
 
                         <p>
-                            Introduce simulated dye and
-                            observe its movement through
-                            the preserved vein network.
+                            Introduce simulated dye and observe
+                            its movement through the preserved network.
                         </p>
 
                     </div>
 
-
-                    <div class="section-status">
-                        READY
+                    <div class="process-badge">
+                        PERFUSION
                     </div>
 
                 </div>
 
 
+                <div class="sample-grid">
 
-                <div class="experiment-grid">
 
+                    <!-- FLOW VIEW -->
 
-                    <!-- =========================================
-                         FLOW VIEW
-                    ========================================== -->
+                    <div class="panel sample-panel">
 
-                    <div class="panel sample-view-panel">
-
-                        <div class="panel-header">
+                        <div class="panel-top">
 
                             <span>
                                 LIVE FLOW VIEW
                             </span>
 
-                            <span>
-                                DYE TRACKING
+                            <span id="flow-status">
+                                READY
                             </span>
 
                         </div>
 
 
-                        <div class="sample-view flow-view">
+                        <div
+                            class="sample-stage flow-stage"
+                            id="flow-stage"
+                        >
 
-                            <div class="leaf">
+                            <div
+                                class="leaf"
+                                id="flow-leaf"
+                            >
 
-                                <div class="vein vein-main"></div>
+                                <div class="main-vein"></div>
 
-                                <div class="vein vein-1"></div>
+                                <div class="branch branch-a"></div>
+                                <div class="branch branch-b"></div>
+                                <div class="branch branch-c"></div>
+                                <div class="branch branch-d"></div>
+                                <div class="branch branch-e"></div>
+                                <div class="branch branch-f"></div>
+                                <div class="branch branch-g"></div>
+                                <div class="branch branch-h"></div>
 
-                                <div class="vein vein-2"></div>
+                            </div>
 
-                                <div class="vein vein-3"></div>
 
-                                <div class="vein vein-4"></div>
+                            <div class="flow-legend">
 
-                                <div class="vein vein-5"></div>
+                                <span class="legend-dot"></span>
 
-                                <div class="vein vein-6"></div>
+                                SIMULATED DYE
 
                             </div>
 
@@ -652,10 +595,7 @@
                     </div>
 
 
-
-                    <!-- =========================================
-                         FLOW CONTROLS
-                    ========================================== -->
+                    <!-- FLOW CONTROL -->
 
                     <div class="panel control-panel">
 
@@ -664,20 +604,15 @@
                         </h3>
 
 
+                        <div class="control-block">
 
-                        <!-- Dye -->
-
-                        <div class="control-group">
-
-                            <div class="control-heading">
+                            <div class="control-title">
 
                                 <span>
                                     Dye Concentration
                                 </span>
 
-                                <strong
-                                    id="dye-value"
-                                >
+                                <strong id="dye-value">
                                     50%
                                 </strong>
 
@@ -685,78 +620,57 @@
 
 
                             <input
-                                id="dye-concentration"
+                                id="dye-slider"
                                 type="range"
                                 min="0"
                                 max="100"
                                 value="50"
                             >
 
+
                             <div class="range-labels">
-
-                                <span>
-                                    Low
-                                </span>
-
-                                <span>
-                                    High
-                                </span>
-
+                                <span>LOW</span>
+                                <span>HIGH</span>
                             </div>
 
                         </div>
 
 
+                        <div class="control-block">
 
-                        <!-- Observation time -->
-
-                        <div class="control-group">
-
-                            <div class="control-heading">
+                            <div class="control-title">
 
                                 <span>
                                     Observation Time
                                 </span>
 
-                                <strong
-                                    id="time-value"
-                                >
-                                    30s
+                                <strong id="time-value">
+                                    30 s
                                 </strong>
 
                             </div>
 
 
                             <input
-                                id="observation-time"
+                                id="time-slider"
                                 type="range"
                                 min="5"
                                 max="60"
                                 value="30"
                             >
 
+
                             <div class="range-labels">
-
-                                <span>
-                                    5s
-                                </span>
-
-                                <span>
-                                    60s
-                                </span>
-
+                                <span>5 s</span>
+                                <span>60 s</span>
                             </div>
 
                         </div>
 
 
-
-                        <!-- Live telemetry -->
-
                         <div class="telemetry-grid">
 
-
-                            <div class="telemetry-box">
+                            <div class="telemetry">
 
                                 <span>
                                     DISTANCE
@@ -769,7 +683,7 @@
                             </div>
 
 
-                            <div class="telemetry-box">
+                            <div class="telemetry">
 
                                 <span>
                                     VELOCITY
@@ -782,7 +696,7 @@
                             </div>
 
 
-                            <div class="telemetry-box">
+                            <div class="telemetry">
 
                                 <span>
                                     COVERAGE
@@ -795,7 +709,6 @@
                             </div>
 
                         </div>
-
 
 
                         <button
@@ -815,20 +728,19 @@
 
 
             <!-- =================================================
-                 STEP 04 — ANALYSIS
+                 STEP 04
             ================================================== -->
 
             <section
                 id="step4"
-                class="experiment-section"
-                style="display: none;"
+                class="step-section"
             >
 
-                <div class="section-header">
+                <div class="section-heading">
 
                     <div>
 
-                        <div class="step-label">
+                        <div class="eyebrow">
                             STEP 04
                         </div>
 
@@ -837,29 +749,35 @@
                         </h2>
 
                         <p>
-                            Review the simulated vascular
-                            transport results.
+                            Review the simulated results of
+                            vascular structure and fluid transport.
                         </p>
 
                     </div>
 
-
-                    <div class="section-status">
+                    <div class="complete-badge">
                         COMPLETE
                     </div>
 
                 </div>
 
 
-
-                <!-- =============================================
-                     METRICS
-                ============================================== -->
-
                 <div class="metrics-grid">
 
+                    <div class="metric">
 
-                    <div class="metric-card">
+                        <span>
+                            STRUCTURE PRESERVATION
+                        </span>
+
+                        <strong id="analysis-preservation">
+                            --
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
 
                         <span>
                             DYE DISTANCE
@@ -872,7 +790,7 @@
                     </div>
 
 
-                    <div class="metric-card">
+                    <div class="metric">
 
                         <span>
                             FLOW VELOCITY
@@ -885,7 +803,7 @@
                     </div>
 
 
-                    <div class="metric-card">
+                    <div class="metric">
 
                         <span>
                             NETWORK COVERAGE
@@ -897,32 +815,12 @@
 
                     </div>
 
-
-                    <div class="metric-card">
-
-                        <span>
-                            STRUCTURE PRESERVATION
-                        </span>
-
-                        <strong>
-                            <span id="analysis-preservation">
-                                --
-                            </span>
-                        </strong>
-
-                    </div>
-
                 </div>
 
 
-
-                <!-- =============================================
-                     CHART
-                ============================================== -->
-
                 <div class="panel chart-panel">
 
-                    <div class="panel-header">
+                    <div class="panel-top">
 
                         <span>
                             VASCULAR FLOW ANALYSIS
@@ -935,47 +833,36 @@
                     </div>
 
 
-                    <div class="chart-container">
+                    <div class="chart-wrapper">
 
-                        <canvas
-                            id="flowChart"
-                        ></canvas>
+                        <canvas id="flowChart"></canvas>
 
                     </div>
 
                 </div>
 
 
+                <div class="panel interpretation">
 
-                <!-- =============================================
-                     SCIENTIFIC INTERPRETATION
-                ============================================== -->
+                    <div class="interpretation-title">
+                        SCIENTIFIC INTERPRETATION
+                    </div>
 
-                <div class="panel scientific-note">
 
-                    <strong>
-                        Scientific Interpretation
-                    </strong>
+                    <div id="interpretation-text">
 
-                    <p>
-                        Complete the vascular flow
-                        simulation to generate the
-                        experimental analysis.
-                    </p>
+                        Complete the simulation to generate
+                        an interpretation of the results.
+
+                    </div>
 
                 </div>
 
 
-
-                <!-- =============================================
-                     NEW EXPERIMENT
-                ============================================== -->
-
                 <button
-                    id="analysis-reset"
+                    id="new-experiment"
                     class="secondary-button"
                     type="button"
-                    onclick="resetExperiment()"
                 >
                     RUN NEW EXPERIMENT
                 </button>
@@ -986,13 +873,10 @@
 
     </div>
 
+</div>
 
 
-    <!-- =====================================================
-         SCRIPT
-    ====================================================== -->
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
